@@ -46,28 +46,28 @@ int main(int argc, char **argv)
 
 	float gameTime = 0;
 
-	int backw, backh, grow, groh;
+	int backgroundWidth, backgroundHeight, groundWidth, groundHeight;
 	int pcount = 0;
 	int highscoreNum = 0;
 
-	ConfigAPI *configD;														//CONFIGURATION CLASS
-	Window *win;															//DISPLAY CLASS
-	SoundManager *sManager = new SoundManager();
+	ConfigAPI *configData;														//CONFIGURATION CLASS
+	Window *displayWindow;															//DISPLAY CLASS
+	SoundManager *soundManager = new SoundManager();
 
 	config = al_load_config_file("config_file.cfg");
 
-	configD = new ConfigAPI(
+	configData = new ConfigAPI(
 		atoi(al_get_config_value(config, NULL, "WIDTH")),
 		atoi(al_get_config_value(config, NULL, "HEIGHT")),
 		GetFullscreenValue(al_get_config_value(config, NULL, "FULLSCREEN")),
 		stof(al_get_config_value(config, "GameSettings", "DIFFICULT")),
 		atoi(al_get_config_value(config, "GameSettings", "HIGHSCORE")));
 
-	highscoreNum = configD->GetHighScore();
+	highscoreNum = configData->GetHighScore();
 
-	win = new Window();
+	displayWindow = new Window();
 
-	win->init(configD->WinWidth(), configD->WinHeight(), configD->WinFullscreen());
+	displayWindow->init(configData->WinWidth(), configData->WinHeight(), configData->WinFullscreen());
 
 	if (!al_init()) {
 		fprintf(stderr, "failed to initialize allegro!\n");
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	display = al_create_display(configD->WinWidth(), configD->WinHeight());
+	display = al_create_display(configData->WinWidth(), configData->WinHeight());
 	if (!display) {
 		fprintf(stderr, "failed to create display!\n");
 		al_destroy_timer(timer);
@@ -154,26 +154,26 @@ int main(int argc, char **argv)
 	hitPipeSound = al_create_sample_instance(NULL);
 	pointSound = al_create_sample_instance(NULL);
 	//---------Sound Manager Initialization + Instances and mixer loading---------//
-	sManager->initSManager(themesong, flapSound, hitPipeSound, pointSound, mixer);
-	sManager->initMixer(voice);
-	sManager->attach_Samples_to_Instances(themedata,
+	soundManager->initSManager(themesong, flapSound, hitPipeSound, pointSound, mixer);
+	soundManager->initMixer(voice);
+	soundManager->attach_Samples_to_Instances(themedata,
 		flapdata,
 		hitdata,
 		pointdata);
-	sManager->attach_Instances_to_Mixer();
+	soundManager->attach_Instances_to_Mixer();
 	/*----------------------------------------------*/
 	/*--------------BITMAP INSTALLATIONS------------*/
 	gameoverscreen = al_load_bitmap("gameover.png");				//Game Over Bitmap Load
 	//=-------Background Bitmap Width Height---------=//
-	backw = al_get_bitmap_width(background);
-	backh = al_get_bitmap_height(background);
+	backgroundWidth = al_get_bitmap_width(background);
+	backgroundHeight = al_get_bitmap_height(background);
 	//=-------Ground Bitmap Width Height---------=//
-	grow = al_get_bitmap_width(ground);
-	groh = al_get_bitmap_height(ground);
+	groundWidth = al_get_bitmap_width(ground);
+	groundHeight = al_get_bitmap_height(ground);
 
 	srand(time(NULL));//Random Generation Initialization with Time
-	FbBackground bg(background, backw, win->getHeight(),win);
-	GroundBk groundbk(ground, grow, groh, win);
+	FbBackground bg(background, backgroundWidth, displayWindow->getHeight(),displayWindow);
+	GroundBk groundbk(ground, groundWidth, groundHeight, displayWindow);
 	PipeBk *bg_pipes = new PipeBk();
 	Player *player = new Player(playerBM);
 
@@ -191,7 +191,7 @@ int main(int argc, char **argv)
 	al_start_timer(timer);
 	gameTime = al_current_time();
 
-	sManager->playThemeSong();
+	soundManager->playThemeSong();
 	/*=---------------------------------------=*/
 	/*=----------------Game Loop--------------=*/
 	while (!done) {
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN){
 			if (ev.mouse.button & 1){
 				if (!player->isGameOver()){
-					sManager->playFlapSound();
+					soundManager->playFlapSound();
 					player->gainHeight();
 				}
 			}
@@ -258,21 +258,21 @@ int main(int argc, char **argv)
 					groundbk.updateBackground();
 					gameTime = al_current_time();
 					if ((int)gameTime % 5 == 0 && pcount < 100){
-						bg_pipes = new PipeBk(pipes, al_get_bitmap_width(pipes), al_get_bitmap_height(pipes),win);
-						bg_pipes->setvelX(-configD->GetDifficulty());
+						bg_pipes = new PipeBk(pipes, al_get_bitmap_width(pipes), al_get_bitmap_height(pipes),displayWindow);
+						bg_pipes->setvelX(-configData->GetDifficulty());
 						pipeList.push_back(bg_pipes);
 						bg_pipes->startPipes(bg, pcount++);
 						//cout << "PIPE LIST SIZE: " << pipeList.size() << endl;
 					}
 
 					for (pipeI = pipeList.begin(); pipeI != pipeList.end();){
-						if (player->collidePipes((*pipeI), groundbk, win) && (!player->getGodMode())){
-							sManager->playCollisionSound();
+						if (player->collidePipes((*pipeI), groundbk, displayWindow) && (!player->getGodMode())){
+							soundManager->playCollisionSound();
 							player->setGameOver();
 						}
 						if (player->passMark((*pipeI))){
 							
-							sManager->playSuccessSound();
+							soundManager->playSuccessSound();
 							player->addScore();
 						}
 						
@@ -305,16 +305,16 @@ int main(int argc, char **argv)
 				pipeI,
 				pipeList,
 				font,
-				win,
+				displayWindow,
 				gameTime
 				);
 
 			//Draws Time
-			tellTime(font, gameTime, win);
+			tellTime(font, gameTime, displayWindow);
 
 			if (player->isGameOver()){
-				al_draw_bitmap(gameoverscreen, win->getWidth() / 2 - al_get_bitmap_width(gameoverscreen) / 2, win->getHeight() / 2 - al_get_bitmap_height(gameoverscreen) / 2, 0);
-				al_draw_textf(GOFont, al_map_rgb(194, 152, 45), win->getWidth() / 2 + 69, win->getHeight() / 2 - 15, ALLEGRO_ALIGN_CENTRE, "%i", player->getScore());
+				al_draw_bitmap(gameoverscreen, displayWindow->getWidth() / 2 - al_get_bitmap_width(gameoverscreen) / 2, displayWindow->getHeight() / 2 - al_get_bitmap_height(gameoverscreen) / 2, 0);
+				al_draw_textf(GOFont, al_map_rgb(194, 152, 45), displayWindow->getWidth() / 2 + 69, displayWindow->getHeight() / 2 - 15, ALLEGRO_ALIGN_CENTRE, "%i", player->getScore());
 				
 			}
 			groundbk.drawGround();
