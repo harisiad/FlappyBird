@@ -28,17 +28,6 @@ int main(int argc, char **argv)
 	ALLEGRO_BITMAP *gameoverscreen = (ALLEGRO_BITMAP*)0;					//ALLEGRO BITMAP GAMEOVER DISPLAY
 	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
 	ALLEGRO_FONT *GOFont = (ALLEGRO_FONT*)0;								//ALLEGRO GAMEOVER SCORE DISPLAY
-	ALLEGRO_SAMPLE_INSTANCE *themesong = (ALLEGRO_SAMPLE_INSTANCE*)0;		//ALLEGRO THEME SONG VAR
-	ALLEGRO_SAMPLE_INSTANCE *flapSound = (ALLEGRO_SAMPLE_INSTANCE*)0;		//ALLEGRO FLAP SOUND VAR
-	ALLEGRO_SAMPLE_INSTANCE *hitPipeSound = (ALLEGRO_SAMPLE_INSTANCE*)0;	//ALLEGRO HIT PIPE SOUND VAR
-	ALLEGRO_SAMPLE_INSTANCE *pointSound = (ALLEGRO_SAMPLE_INSTANCE*)0;		//ALLEGRO POINT SOUND VAR
-	ALLEGRO_SAMPLE *themedata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO THEME SONG DATA VAR
-	ALLEGRO_SAMPLE *flapdata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO FLAP SOUND DATA VAR
-	ALLEGRO_SAMPLE *hitdata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO COLLISION SOUND DATA VAR
-	ALLEGRO_SAMPLE *pointdata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO POINT SOUND DATA VAR
-	ALLEGRO_MIXER *mixer = (ALLEGRO_MIXER*)0;
-	ALLEGRO_VOICE *voice = (ALLEGRO_VOICE*)0;
-
 
 	bool redraw = true;
 	bool isPaused = false;
@@ -140,27 +129,7 @@ int main(int argc, char **argv)
 	}
 	/*----------------------------------------------*/
 	/*---------------SOUND INSTALLATION-------------*/
-	if (!al_reserve_samples(4)) {
-		cout << "Failed to reserve audio samples!" << endl;
-	}
-	//---------Sample Loading-----------//
-	themedata = al_load_sample("theme_song.ogg");
-	flapdata = al_load_sample("flap.wav");
-	hitdata = al_load_sample("hit.ogg");
-	pointdata = al_load_sample("success.ogg");
-	//---------Instances Creation----------//
-	themesong = al_create_sample_instance(NULL);
-	flapSound = al_create_sample_instance(NULL);
-	hitPipeSound = al_create_sample_instance(NULL);
-	pointSound = al_create_sample_instance(NULL);
-	//---------Sound Manager Initialization + Instances and mixer loading---------//
-	soundManager->initSManager(themesong, flapSound, hitPipeSound, pointSound, mixer);
-	soundManager->initMixer(voice);
-	soundManager->attach_Samples_to_Instances(themedata,
-		flapdata,
-		hitdata,
-		pointdata);
-	soundManager->attach_Instances_to_Mixer();
+	installSound(soundManager);
 	/*----------------------------------------------*/
 	/*--------------BITMAP INSTALLATIONS------------*/
 	gameoverscreen = al_load_bitmap("gameover.png");				//Game Over Bitmap Load

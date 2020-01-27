@@ -1,6 +1,7 @@
 #include "pub_funcs.h"
 
-bool GetFullscreenValue(const char* c){
+bool GetFullscreenValue(const char* c)
+{
 	bool tmp = false;
 
 	if (strcmp(c, "FALSE") == 0) {
@@ -13,7 +14,8 @@ bool GetFullscreenValue(const char* c){
 	return tmp;
 }
 
-void installAddons(){
+void installAddons()
+{
 	if (!al_install_keyboard())
 	{
 		std::cout << "Failed to install keyboard..." << std::endl;
@@ -45,8 +47,45 @@ void installAddons(){
 	{
 		std::cout << "Failed to install ttf addon..." << std::endl;
 	}
-	
 }
+
+void installSound(SoundManager* target)
+{
+	ALLEGRO_SAMPLE_INSTANCE *themesong = (ALLEGRO_SAMPLE_INSTANCE*)0;		//ALLEGRO THEME SONG VAR
+	ALLEGRO_SAMPLE_INSTANCE *flapSound = (ALLEGRO_SAMPLE_INSTANCE*)0;		//ALLEGRO FLAP SOUND VAR
+	ALLEGRO_SAMPLE_INSTANCE *hitPipeSound = (ALLEGRO_SAMPLE_INSTANCE*)0;	//ALLEGRO HIT PIPE SOUND VAR
+	ALLEGRO_SAMPLE_INSTANCE *pointSound = (ALLEGRO_SAMPLE_INSTANCE*)0;		//ALLEGRO POINT SOUND VAR
+	ALLEGRO_SAMPLE *themedata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO THEME SONG DATA VAR
+	ALLEGRO_SAMPLE *flapdata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO FLAP SOUND DATA VAR
+	ALLEGRO_SAMPLE *hitdata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO COLLISION SOUND DATA VAR
+	ALLEGRO_SAMPLE *pointdata = (ALLEGRO_SAMPLE*)0;							//ALLEGRO POINT SOUND DATA VAR
+	ALLEGRO_MIXER *mixer = (ALLEGRO_MIXER*)0;
+	ALLEGRO_VOICE *voice = (ALLEGRO_VOICE*)0;
+
+	if (!al_reserve_samples(4))
+	{
+		std::cout << "Failed to reserve audio samples!" << std::endl;
+	}
+	//---------Sample Loading-----------//
+	themedata = al_load_sample("theme_song.ogg");
+	flapdata = al_load_sample("flap.wav");
+	hitdata = al_load_sample("hit.ogg");
+	pointdata = al_load_sample("success.ogg");
+	//---------Instances Creation----------//
+	themesong = al_create_sample_instance(NULL);
+	flapSound = al_create_sample_instance(NULL);
+	hitPipeSound = al_create_sample_instance(NULL);
+	pointSound = al_create_sample_instance(NULL);
+	//---------Sound Manager Initialization + Instances and mixer loading---------//
+	target->initSManager(themesong, flapSound, hitPipeSound, pointSound, mixer);
+	target->initMixer(voice);
+	target->attach_Samples_to_Instances(themedata,
+		flapdata,
+		hitdata,
+		pointdata);
+	target->attach_Instances_to_Mixer();
+}
+
 void drawGameAspects(FbBackground bg, Player* player, std::list<PipeBk *>::iterator pipeI, std::list<PipeBk *> pipeList, ALLEGRO_FONT* font, Window* win, int time){
 	
 	bg.drawBackground(); //Draw Background
