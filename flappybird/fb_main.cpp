@@ -1,9 +1,10 @@
 #include "fb_bitmap.h"
-#include "PlayerCS.h"
+#include "player.h"
 #include "config.h"
 #include "pub_funcs.h"
-#include "SoundManager.h"
-#include "Globals.h"
+#include "sound_manager.h"
+#include "fb_globals.h"
+#include "fb_main.h"
 
 using namespace std;
 
@@ -16,8 +17,6 @@ list<PipeBk *>::iterator pipeI;
 int main(int argc, char **argv)
 {
 	ALLEGRO_CONFIG *config = (ALLEGRO_CONFIG*)0;							//CONFIGURATION ALLEGRO VAR
-	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
-	ALLEGRO_FONT *GOFont = (ALLEGRO_FONT*)0;								//ALLEGRO GAMEOVER SCORE DISPLAY
 
 	GameData gameData;
 
@@ -30,20 +29,17 @@ int main(int argc, char **argv)
 
 	int pcount = 0;
 
-	ConfigAPI *configData;														//CONFIGURATION CLASS
-	Window *displayWindow;															//DISPLAY CLASS
+	ConfigAPI *configData;													//CONFIGURATION CLASS
+	Window *displayWindow = new Window();									//DISPLAY CLASS
 	SoundManager *soundManager = new SoundManager();
 
 	config = al_load_config_file("config_file.cfg");
-
 	configData = new ConfigAPI(
 		atoi(al_get_config_value(config, NULL, "WIDTH")),
 		atoi(al_get_config_value(config, NULL, "HEIGHT")),
 		GetFullscreenValue(al_get_config_value(config, NULL, "FULLSCREEN")),
 		stof(al_get_config_value(config, "GameSettings", "DIFFICULT")),
 		atoi(al_get_config_value(config, "GameSettings", "HIGHSCORE")));
-
-	displayWindow = new Window();
 
 	displayWindow->init(configData->WinWidth(), configData->WinHeight(), configData->WinFullscreen());
 
@@ -69,13 +65,7 @@ int main(int argc, char **argv)
 
 	player->setHighscore(configData->GetHighScore());
 
-	font = al_load_ttf_font("arial.ttf", 18, 0);
-	GOFont = al_load_ttf_font("arial.ttf", 35, 0);
-
-	al_register_event_source(gameData.event_queue, al_get_display_event_source(gameData.display));
-	al_register_event_source(gameData.event_queue, al_get_keyboard_event_source());
-	al_register_event_source(gameData.event_queue, al_get_mouse_event_source());
-	al_register_event_source(gameData.event_queue, al_get_timer_event_source(gameData.timer));
+	RegisterEventSources(gameData);
 
 	al_start_timer(gameData.timer);
 	gameTime = al_current_time();
@@ -172,45 +162,50 @@ int main(int argc, char **argv)
 				{
 					player->updatePlayer();
 					player->gravityPull(groundbk.getY());
+
 					bg.updateBackground();
+
 					groundbk.updateBackground();
+
 					gameTime = al_current_time();
-					if ((int)gameTime % 5 == 0 && pcount < 10)
+
+					if (pcount < 10)
 					{
 						bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes),displayWindow);
-						bg_pipes->setvelX(-configData->GetDifficulty());
+						bg_pipes->setvelX(-configData->GetDifficulty() * 3);
 						pipeList.push_back(bg_pipes);
 						bg_pipes->startPipes(bg, pcount++);
-						//cout << "PIPE LIST SIZE: " << pipeList.size() << endl;
 					}
 
-					for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
+					for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
 					{
+
 						if (player->collidePipes((*pipeI), groundbk, displayWindow) && (!player->getGodMode()))
 						{
 							soundManager->playCollisionSound();
 							player->setGameOver();
 						}
+
 						if (player->passMark((*pipeI)))
 						{
-							
 							soundManager->playSuccessSound();
 							player->addScore();
 						}
-						
-						if (!(*pipeI)->getAlivePipe())
+
+						if ((*pipeI)->getX() < -(*pipeI)->getBgWidth())
 						{
-							delete (*pipeI);
+							PipeBk* firstPipe = pipeList.front();
+							PipeBk* lastPipe = pipeList.back();
+							firstPipe->setX(lastPipe->getX() + 300);
 							pipeI = pipeList.erase(pipeI);
-							--pcount;
+							pipeList.push_back(firstPipe);
+							std::cout << "Pipe new loc: " << firstPipe->getX() << std::endl;
 						}
-						else 
+						else
 						{
 							(*pipeI)->updatePipes();
-							pipeI++;
 						}
 					}
-
 				}
 			}
 			
@@ -228,21 +223,21 @@ int main(int argc, char **argv)
 				player,
 				pipeI,
 				pipeList,
-				font,
+				gameData.font,
 				displayWindow,
 				gameTime,
 				debugMode
 				);
 
 			//Draws Time
-			tellTime(font, gameTime, displayWindow);
+			tellTime(gameData.font, gameTime, displayWindow);
 
 			if (player->isGameOver())
 			{
 				al_draw_bitmap(gameData.gameOverScreen, displayWindow->getWidth() / 2 - al_get_bitmap_width(gameData.gameOverScreen) / 2, displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.gameOverScreen) / 2, 0);
-				al_draw_textf(GOFont, al_map_rgb(194, 152, 45), displayWindow->getWidth() / 2 + 69, displayWindow->getHeight() / 2 - 15, ALLEGRO_ALIGN_CENTRE, "%i", player->getScore());
-				
+				al_draw_textf(gameData.gameOverFont, al_map_rgb(194, 152, 45), displayWindow->getWidth() / 2 + 69, displayWindow->getHeight() / 2 - 15, ALLEGRO_ALIGN_CENTRE, "%i", player->getScore());
 			}
+
 			groundbk.drawGround();
 			al_flip_display();
 			al_map_rgb(0, 0, 0);
@@ -252,11 +247,10 @@ int main(int argc, char **argv)
 	/*=---------------------Keep Highscore in configuration file-------------------------=*/
 	if (player->getScore() > player->getHighscore())
 	{
-		//const char* highscore = highscore_string(player->getScore()).c_str();
-		cout << "NEW HIGHSCORE: " << to_string(player->getScore()).c_str() << " !!!" << endl;
 		al_set_config_value(config, "GameSettings", "HIGHSCORE", to_string(player->getScore()).c_str());
 		al_save_config_file("config_file.cfg", config);
 	}
+
 	/*=-------------------Destroy All and Free memory-----------------------=*/
 	for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
 	{
@@ -268,4 +262,12 @@ int main(int argc, char **argv)
 	al_destroy_config(config);
 
 	return 0;
+}
+
+void RegisterEventSources(GameData &gameData)
+{
+	al_register_event_source(gameData.event_queue, al_get_display_event_source(gameData.display));
+	al_register_event_source(gameData.event_queue, al_get_keyboard_event_source());
+	al_register_event_source(gameData.event_queue, al_get_mouse_event_source());
+	al_register_event_source(gameData.event_queue, al_get_timer_event_source(gameData.timer));
 }

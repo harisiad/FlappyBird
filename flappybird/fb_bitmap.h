@@ -1,5 +1,5 @@
 #pragma once
-#include "Globals.h"
+#include "fb_globals.h"
 
 class Window {
 protected:

@@ -59,7 +59,21 @@ GameData InitializeGameData(GameData data, ConfigAPI* config)
 	if (!data.gameOverScreen)
 	{
 		fprintf(stderr, "failed to load gameover bitmap!\n");
-		data.code = ERR_GAMEOVERSCREEN_LD;	
+		data.code = ERR_GAMEOVERSCREEN_LD;
+	}
+
+	data.font = al_load_ttf_font("8bit.ttf", 18, 0);
+	if (!data.font)
+	{
+		fprintf(stderr, "failed to load font!\n");
+		data.code = ERR_FONT_LD;
+	}
+
+	data.gameOverFont = al_load_ttf_font("8bit.ttf", 35, 0);
+	if (!data.font)
+	{
+		fprintf(stderr, "failed to load game over font!\n");
+		data.code = ERR_FONT_LD;
 	}
 
 	return data;

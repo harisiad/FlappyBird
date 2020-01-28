@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Globals.h"
-#include "PlayerCS.h"
+#include "fb_globals.h"
+#include "player.h"
 #include "fb_bitmap.h"
 #include "config.h"
-#include "SoundManager.h"
+#include "sound_manager.h"
 
 struct GameData
 {
@@ -18,7 +18,7 @@ struct GameData
 	ALLEGRO_BITMAP *playerBmp = (ALLEGRO_BITMAP*)0;							//ALLEGRO BITMAP FLAPPY
 	ALLEGRO_BITMAP *gameOverScreen = (ALLEGRO_BITMAP*)0;					//ALLEGRO BITMAP GAMEOVER DISPLAY
 	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
-	ALLEGRO_FONT *GOFont = (ALLEGRO_FONT*)0;								//ALLEGRO GAMEOVER SCORE DISPLAY
+	ALLEGRO_FONT *gameOverFont = (ALLEGRO_FONT*)0;							//ALLEGRO GAMEOVER SCORE DISPLAY
 	unsigned code = 000;
 };
 

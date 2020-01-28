@@ -1,5 +1,4 @@
 #include "fb_bitmap.h"
-#include "Globals.h"
 
 Window::Window(){
 	width = 0;
@@ -240,7 +239,6 @@ int PipeBk::getBoundYdown(){
 void PipeBk::startPipes(FbBackground back, int mul){
 	x = win->getWidth() + mul * 300;
 	y = win->getHeight() / 4 + (rand() % (int)((win->getHeight() - 2 * win->getHeight() / 5) - win->getHeight() / 4 + 1));
-	std::cout << "Random num: " << rand() % (int)((win->getHeight() - 2 * win->getHeight() / 5) - win->getHeight() / 4 + 1) << std::endl;
 }
 
 void PipeBk::drawPipes(){

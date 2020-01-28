@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Globals.h"
+#include "fb_globals.h"
 #include "fb_bitmap.h"
 
 class Player {

@@ -1,4 +1,4 @@
-#include "SoundManager.h"
+#include "sound_manager.h"
 
 SoundManager::SoundManager(){
 	mixer = (ALLEGRO_MIXER*)0;

@@ -1,6 +1,5 @@
 #pragma once
 
-
 class ConfigAPI {
 private:
 	struct Data {
