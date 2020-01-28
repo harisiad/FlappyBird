@@ -1,5 +1,82 @@
 #include "pub_funcs.h"
 
+GameData InitializeGameData(GameData data, ConfigAPI* config)
+{
+	srand(time(NULL));	//Random Generation Initialization with Time
+
+	data.timer = al_create_timer(1.0 / FPS);
+	if (!data.timer)
+	{
+		fprintf(stderr, "failed to create data.timer!\n");
+		data.code = ERR_TIMER_LD;
+	}
+
+	data.display = al_create_display(config->WinWidth(), config->WinHeight());
+	if (!data.display)
+	{
+		fprintf(stderr, "failed to create data.display!\n");
+		data.code = ERR_DISPLAY_LD;
+	}
+
+	data.event_queue = al_create_event_queue();
+	if (!data.event_queue)
+	{
+		fprintf(stderr, "failed to create data.event_queue!\n");
+		data.code = ERR_EVENTQUEUE_LD;
+	}
+
+	installAddons();
+
+	data.background = al_load_bitmap("bkflappy.png");
+	if (!data.background)
+	{
+		fprintf(stderr, "failed to load background bitmap!\n");
+		data.code = ERR_BACKGROUND_LD;
+	}
+
+	data.ground = al_load_bitmap("ground.png");
+	if (!data.ground)
+	{
+		fprintf(stderr, "failed to load ground bitmap!\n");
+		data.code = ERR_GROUND_LD;
+	}
+
+	data.pipes = al_load_bitmap("pipes.png");
+	if (!data.pipes)
+	{
+		fprintf(stderr, "failed to load pipe bitmap!\n");
+		data.code = ERR_PIPES_LD;
+	}
+
+	data.playerBmp = al_load_bitmap("bird.png");
+	if (!data.playerBmp)
+	{
+		fprintf(stderr, "failed to load flappy bird stripe!\n");
+		data.code = ERR_PLAYERBMP_LD;
+	}
+
+	data.gameOverScreen = al_load_bitmap("gameover.png");				//Game Over Bitmap Load
+	if (!data.gameOverScreen)
+	{
+		fprintf(stderr, "failed to load gameover bitmap!\n");
+		data.code = ERR_GAMEOVERSCREEN_LD;	
+	}
+
+	return data;
+}
+
+void DestroyGameData(GameData data)
+{
+	al_destroy_bitmap(data.playerBmp);
+	al_destroy_bitmap(data.pipes);
+	al_destroy_bitmap(data.background);
+	al_destroy_bitmap(data.ground);
+	al_destroy_bitmap(data.gameOverScreen);
+	al_destroy_timer(data.timer);
+	al_destroy_display(data.display);
+	al_destroy_event_queue(data.event_queue);
+}
+
 bool GetFullscreenValue(const char* c)
 {
 	bool tmp = false;
@@ -86,7 +163,7 @@ void installSound(SoundManager* target)
 	target->attach_Instances_to_Mixer();
 }
 
-void drawGameAspects(FbBackground bg, Player* player, std::list<PipeBk *>::iterator pipeI, std::list<PipeBk *> pipeList, ALLEGRO_FONT* font, Window* win, int time){
+void drawGameAspects(FbBackground bg, Player* player, std::list<PipeBk *>::iterator pipeI, std::list<PipeBk *> pipeList, ALLEGRO_FONT* font, Window* win, int time, bool debugMode){
 	
 	bg.drawBackground(); //Draw Background
 	
@@ -96,30 +173,32 @@ void drawGameAspects(FbBackground bg, Player* player, std::list<PipeBk *>::itera
 	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI){
 		(*pipeI)->drawPipes();
 		/*Bound Boxes of Pipes and Space in between*/
+		if (debugMode)
+		{
+			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXup(),
+				(*pipeI)->getY() - (*pipeI)->getBoundFreeY() - (*pipeI)->getBoundYup(),
+				(*pipeI)->getX() + (*pipeI)->getBoundXup(),
+				(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
+				al_map_rgb(255, 0, 0));
 
-		/*al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXup(),
-		(*pipeI)->getY() - (*pipeI)->getBoundFreeY() - (*pipeI)->getBoundYup(),
-		(*pipeI)->getX() + (*pipeI)->getBoundXup(),
-		(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
-		al_map_rgb(255,0,0));
+			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXdown(),
+				(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
+				(*pipeI)->getX() + (*pipeI)->getBoundXdown(),
+				(*pipeI)->getY() + (*pipeI)->getBoundFreeY() + 2 * (*pipeI)->getBoundYdown(),
+				al_map_rgb(0, 0, 255));
 
-		al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXdown(),
-		(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
-		(*pipeI)->getX() + (*pipeI)->getBoundXdown(),
-		(*pipeI)->getY() + (*pipeI)->getBoundFreeY() + 2*(*pipeI)->getBoundYdown(),
-		al_map_rgb(0, 0, 255));
+			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundFreeX(),
+				(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
+				(*pipeI)->getX() + (*pipeI)->getBoundFreeX(),
+				(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
+				al_map_rgb(255, 0, 255));
 
-		al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundFreeX(),
-		(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
-		(*pipeI)->getX() + (*pipeI)->getBoundFreeX(),
-		(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
-		al_map_rgb(255, 0, 255));
-
-		al_draw_filled_rectangle((*pipeI)->getX() - 5,
-		(*pipeI)->getY() - 5,
-		(*pipeI)->getX() + 5,
-		(*pipeI)->getY() + 5,
-		al_map_rgb(255, 0, 0));*/
+			al_draw_filled_rectangle((*pipeI)->getX() - 5,
+				(*pipeI)->getY() - 5,
+				(*pipeI)->getX() + 5,
+				(*pipeI)->getY() + 5,
+				al_map_rgb(255, 0, 0));
+		}
 	}
 	al_draw_filled_rectangle(player->getX(),
 		player->getY(),

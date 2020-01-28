@@ -27,12 +27,16 @@ public:
 
 	void setThemeSong(ALLEGRO_SAMPLE_INSTANCE* _theme) { theme_song = _theme; }
 	ALLEGRO_SAMPLE_INSTANCE* getThemeSong(){ return theme_song; }
+
 	void setFlapSound(ALLEGRO_SAMPLE_INSTANCE* _flap) { flap_sound = _flap; }
 	ALLEGRO_SAMPLE_INSTANCE* getFlapSound(){ return flap_sound; }
+
 	void setCollisionSound(ALLEGRO_SAMPLE_INSTANCE* _collision) { collision_sound = _collision; }
 	ALLEGRO_SAMPLE_INSTANCE* getCollisionSound(){ return collision_sound; }
+
 	void setSuccessSound(ALLEGRO_SAMPLE_INSTANCE* _success) { success_sound = _success; }
 	ALLEGRO_SAMPLE_INSTANCE* getSuccessSound(){ return success_sound; }
+
 	void setMixer(ALLEGRO_MIXER* _mixer) { mixer = _mixer; }
 	ALLEGRO_MIXER* getMixer(){ return mixer; }
 
