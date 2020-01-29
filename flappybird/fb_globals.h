@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _FLAPPYBIRD_GLOBALS_H_
+#define _FLAPPYBIRD_GLOBALS_H_
 
 #include <stdio.h>
 #include <iostream>
@@ -32,3 +33,5 @@ const unsigned ERR_PIPES_LD = 506;
 const unsigned ERR_PLAYERBMP_LD = 507;
 const unsigned ERR_GAMEOVERSCREEN_LD = 508;
 const unsigned ERR_FONT_LD = 509;
+
+#endif

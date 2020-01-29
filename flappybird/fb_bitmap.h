@@ -1,25 +1,11 @@
-#pragma once
+#ifndef _FLAPPYBIRD_ENVIRONMENT_BITMAP_H_
+#define _FLAPPYBIRD_ENVIRONMENT_BITMAP_H_
+
 #include "fb_globals.h"
+#include "fb_window.h"
 
-class Window {
-protected:
-	int width;
-	int height;
-
-	bool fullscreen;
-public:
-	Window();
-
-	void init(int,int,bool);
-	void setWidth(int _width) { width = _width; }
-	int getWidth(){ return width; }
-	void setHeight(int _height) { height = _height; }
-	int getHeight(){ return height; }
-
-	bool getFullScreen(){ return fullscreen; }
-};
-
-class FbBackground {
+class FbBackground 
+{
 protected:
 	float x;
 	float y;
@@ -58,57 +44,4 @@ public:
 	
 };
 
-class GroundBk : public FbBackground {
-private:
-	int boundx;
-	int boundy;
-
-public:
-	GroundBk();
-	GroundBk(ALLEGRO_BITMAP*, int, int,Window*);
-
-	void setBoundX(int);
-	int getBoundX();
-	void setBoundY(int);
-	int getBoundY();
-
-	void drawGround();
-	bool groundCollision(int, int);
-};
-
-class PipeBk : public FbBackground {
-private:
-	int boundXup;
-	int boundYup;
-	int boundXdown;
-	int boundYdown;
-
-	int boundFreeX;
-	int boundFreeY;
-
-	bool alive;
-
-public:
-	PipeBk();
-	PipeBk(ALLEGRO_BITMAP*, int, int,Window*);
-
-	void setBoundXup(int);
-	int getBoundXup();
-	void setBoundYup(int);
-	int getBoundYup();
-	void setBoundXdown(int);
-	int getBoundXdown();
-	void setBoundYdown(int);
-	int getBoundYdown();
-
-	int getBoundFreeX() { return boundFreeX; }
-	int getBoundFreeY() { return boundFreeY; }
-
-	void setAlivePipe(bool value) { alive = value; }
-	bool getAlivePipe(){ return alive; }
-
-	bool groundCollision(int,int);
-	void drawPipes();
-	void updatePipes();
-	void startPipes(FbBackground,int);
-};
+#endif

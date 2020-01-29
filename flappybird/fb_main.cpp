@@ -5,6 +5,8 @@
 #include "sound_manager.h"
 #include "fb_globals.h"
 #include "fb_main.h"
+#include "fb_ground.h"
+#include "fb_pipes.h"
 
 using namespace std;
 
