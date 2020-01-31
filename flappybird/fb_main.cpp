@@ -193,14 +193,15 @@ int main(int argc, char **argv)
 							player->addScore();
 						}
 
-						if ((*pipeI)->getX() < -(*pipeI)->getWidth())
+						if ((*pipeI)->getX() < -(*pipeI)->getWidth() * 2)
 						{
 							PipeBk* firstPipe = pipeList.front();
 							PipeBk* lastPipe = pipeList.back();
 
-							firstPipe->setX(lastPipe->getX() + 300);
-							pipeI = pipeList.erase(pipeI);
+							firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
 							pipeList.push_back(firstPipe);
+
+							pipeI = pipeList.erase(pipeI);
 						}
 						else
 						{

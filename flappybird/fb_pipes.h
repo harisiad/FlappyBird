@@ -8,6 +8,8 @@
 
 class PipeBk : public GameObject {
 private:
+	float pipeDistance = 250;
+
 	int boundXup;
 	int boundYup;
 	int boundXdown;
@@ -21,6 +23,8 @@ private:
 public:
 	PipeBk();
 	PipeBk(ALLEGRO_BITMAP*, int, int, Window*);
+
+	inline float getPipeDistance() { return pipeDistance; };
 
 	void setBoundXup(int);
 	int getBoundXup();
