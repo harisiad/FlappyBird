@@ -11,8 +11,8 @@ Player::Player(ALLEGRO_BITMAP* image)
 	gravity = 0.35;
 	rotation = 0;
 
-	boundX = 10;
-	boundY = 10;
+	boundX = 11;
+	boundY = 11;
 
 	maxframe = 4;
 	currframe = 0;
@@ -76,6 +76,7 @@ void Player::gravityPull(int groundHeight)
 		rotation = -90.0;
 	}
 }
+
 void Player::drawPlayer()
 {
 	int animationFrameX = (currframe % animationColumns) * framewidth;
@@ -85,7 +86,6 @@ void Player::drawPlayer()
 	animationFrameX, animationFrameY,
 	framewidth, frameheight,
 	x - framewidth / 2, y - frameheight / 2, 0);
-	
 }
 
 void Player::gainHeight()
@@ -104,16 +104,15 @@ void Player::resetAnimation()
 	animationRow = 0;
 }
 
-bool Player::collidePipes(PipeBk* pipe, GroundBk ground, Window *win)
+bool Player::collidePipes(PipeBk* pipe)
 {
-
 	if (x + boundX > pipe->getX() - pipe->getBoundXup() &&
 		y + boundY > pipe->getY() - pipe->getBoundFreeY() - pipe->getBoundYup() &&
 		x - boundX < pipe->getX() + pipe->getBoundXup() &&
 		y - boundY < pipe->getY() - pipe->getBoundFreeY())
 	{
 		return true;
-	} 
+	}
 	if (x + boundX > pipe->getX() - pipe->getBoundXdown() &&
 		y + boundY > pipe->getY() + pipe->getBoundFreeY() &&
 		x - boundX < pipe->getX() + pipe->getBoundXdown() &&
@@ -125,13 +124,13 @@ bool Player::collidePipes(PipeBk* pipe, GroundBk ground, Window *win)
 	return false;
 }
 
-bool Player::passMark(PipeBk* pipes)
+bool Player::passMark(PipeBk* pipe)
 {
-	if (((x - framewidth / 2) + boundX == pipes->getX() + 30)    &&
-		(((y - frameheight / 2) - boundY >= pipes->getY() - 120) || 
-		((y - frameheight / 2) + boundY <= pipes->getY() + 120))) 
+	if (!pipe->getScored() &&
+		!collidePipes(pipe) && 
+		(x - framewidth / 2) >= pipe->getX() - pipe->getBoundFreeX() && 
+		(x - framewidth / 2) <= pipe->getX() + pipe->getBoundFreeX())
 	{
-
 		return true;
 	}
 

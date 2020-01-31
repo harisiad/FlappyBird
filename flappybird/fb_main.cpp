@@ -162,6 +162,8 @@ int main(int argc, char **argv)
 			{
 				if (!isPaused)
 				{
+					bool isMoved = false;
+
 					player->updatePlayer();
 					player->gravityPull(groundbk.getY());
 
@@ -178,35 +180,50 @@ int main(int argc, char **argv)
 						bg_pipes->startPipes(bg, pcount++);
 					}
 
-					for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
+					for (PipeBk* pipe : pipeList)
 					{
-
-						if (player->collidePipes((*pipeI), groundbk, displayWindow) && (!player->getGodMode()))
+						bool hit = player->passMark(pipe);
+						if (player->collidePipes(pipe) && (!player->getGodMode()))
 						{
 							soundManager->playCollisionSound();
 							player->setGameOver();
 						}
 
-						if (player->passMark((*pipeI)))
+						if (player->passMark(pipe))
 						{
 							soundManager->playSuccessSound();
 							player->addScore();
+							pipe->setScored(true);
 						}
 
-						if ((*pipeI)->getX() < -(*pipeI)->getWidth() * 2)
+						if (pipe->getX() < -pipe->getWidth() * 2)
 						{
 							PipeBk* firstPipe = pipeList.front();
 							PipeBk* lastPipe = pipeList.back();
 
 							firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
-							pipeList.push_back(firstPipe);
-
-							pipeI = pipeList.erase(pipeI);
+							/*pipeList.push_back(firstPipe);
+							pipeList.pop_front();*/
+							isMoved = true;
 						}
 						else
 						{
-							(*pipeI)->updatePipes();
+							pipe->updatePipes();
 						}
+					}
+
+					if (isMoved)
+					{
+						PipeBk* firstPipe = pipeList.front();
+
+						firstPipe->setScored(false);
+
+						pipeList.pop_front();
+						pipeList.push_back(firstPipe);
+
+						isMoved = false;
+						/*pipeList.sort(PipeCompareDistances);
+						isMoved = false;*/
 					}
 				}
 			}

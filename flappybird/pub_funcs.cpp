@@ -211,6 +211,20 @@ void drawGameAspects(Background bg, Player* player, std::list<PipeBk *>::iterato
 				(*pipeI)->getX() + 5,
 				(*pipeI)->getY() + 5,
 				al_map_rgb(255, 0, 0));
+
+			al_draw_filled_rectangle(player->getX() - player->getWidth() / 2,
+				player->getY() - player->getHeight() / 2,
+				player->getX() + player->getBoundX(),
+				player->getY() + player->getBoundY(),
+				al_map_rgb(255, 0, 0));
+
+			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) - 20, ALLEGRO_ALIGN_LEFT, "Player");
+			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, SCREEN_H / 2, ALLEGRO_ALIGN_LEFT, "X: %.3f", player->getX());
+			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", player->getY());
+			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", player->getBoundX());
+			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", player->getBoundY());
+
+			al_draw_textf(font, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
 		}
 	}
 	al_draw_filled_rectangle(player->getX(),
@@ -243,4 +257,9 @@ void RegisterEventSources(GameData &data)
 	al_register_event_source(data.event_queue, al_get_keyboard_event_source());
 	al_register_event_source(data.event_queue, al_get_mouse_event_source());
 	al_register_event_source(data.event_queue, al_get_timer_event_source(data.timer));
+}
+
+bool PipeCompareDistances(PipeBk* source, PipeBk* comp)
+{
+	return source->getX() < comp->getX();
 }

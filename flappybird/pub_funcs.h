@@ -35,3 +35,5 @@ void drawGameAspects(Background, Player*, std::list<PipeBk *>::iterator, std::li
 std::string const highscore_string(int);
 
 void RegisterEventSources(GameData &gameData);
+
+bool PipeCompareDistances(PipeBk*, PipeBk*);

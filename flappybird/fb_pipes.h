@@ -19,6 +19,7 @@ private:
 	int boundFreeY;
 
 	bool alive;
+	bool scored;
 
 public:
 	PipeBk();
@@ -40,6 +41,9 @@ public:
 
 	void setAlivePipe(bool value) { alive = value; }
 	bool getAlivePipe() { return alive; }
+
+	void setScored(bool value) { scored = value; };
+	bool getScored() { return scored; };
 
 	void drawPipes();
 	void updatePipes();

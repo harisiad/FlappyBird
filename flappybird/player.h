@@ -3,7 +3,6 @@
 #include "fb_globals.h"
 #include "fb_background.h"
 #include "fb_pipes.h"
-#include "fb_window.h"
 #include "fb_ground.h"
 
 class Player {
@@ -50,6 +49,9 @@ public:
 	void setY(float){ Player::y = y; }
 	float getY(){ return y; }
 
+	inline int getWidth() { return framewidth; };
+	inline int getHeight() { return frameheight; };
+
 	void setBoundX(int boundX){ Player::boundX = boundX; }
 	int getBoundX() { return boundX; }
 	void setBoundY(int boundY){ Player::boundY = boundY; }
@@ -69,7 +71,7 @@ public:
 	void gainHeight();
 	void resetAnimation();
 
-	bool collidePipes(PipeBk*,GroundBk,Window*);
+	bool collidePipes(PipeBk*);
 	bool collideGround(GroundBk);
 	bool passMark(PipeBk*);
 
