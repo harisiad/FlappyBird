@@ -177,15 +177,14 @@ void installSound(SoundManager* target)
 	target->attach_Instances_to_Mixer();
 }
 
-void drawGameAspects(FbBackground bg, Player* player, std::list<PipeBk *>::iterator pipeI, std::list<PipeBk *> pipeList, ALLEGRO_FONT* font, Window* win, int time, bool debugMode){
+void drawGameAspects(Background bg, Player* player, std::list<PipeBk *>::iterator pipeI, std::list<PipeBk *> pipeList, ALLEGRO_FONT* font, Window* win, int time, bool debugMode){
 	
-	bg.drawBackground(); //Draw Background
+	bg.draw(); //Draw Background
 	
 	player->drawPlayer(); //Draw Flappy
 	
-
 	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI){
-		(*pipeI)->drawPipes();
+		(*pipeI)->draw();
 		/*Bound Boxes of Pipes and Space in between*/
 		if (debugMode)
 		{
@@ -236,4 +235,12 @@ void tellTime(ALLEGRO_FONT* font, int sec, Window* win){
 std::string const highscore_string(int x){
 	std::string str = std::to_string(x);
 	return str;
+}
+
+void RegisterEventSources(GameData &data)
+{
+	al_register_event_source(data.event_queue, al_get_display_event_source(data.display));
+	al_register_event_source(data.event_queue, al_get_keyboard_event_source());
+	al_register_event_source(data.event_queue, al_get_mouse_event_source());
+	al_register_event_source(data.event_queue, al_get_timer_event_source(data.timer));
 }

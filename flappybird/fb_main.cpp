@@ -1,10 +1,10 @@
-#include "fb_bitmap.h"
+#include "fb_globals.h"
+
+#include "fb_background.h"
 #include "player.h"
 #include "config.h"
 #include "pub_funcs.h"
 #include "sound_manager.h"
-#include "fb_globals.h"
-#include "fb_main.h"
 #include "fb_ground.h"
 #include "fb_pipes.h"
 
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
 	installSound(soundManager);
 
-	FbBackground bg(gameData.background, al_get_bitmap_width(gameData.background), displayWindow->getHeight(),displayWindow);
+	Background bg(gameData.background, al_get_bitmap_width(gameData.background), displayWindow->getHeight(),displayWindow);
 	GroundBk groundbk(gameData.ground, al_get_bitmap_width(gameData.ground), al_get_bitmap_height(gameData.ground), displayWindow);
 	PipeBk *bg_pipes = new PipeBk();
 	Player *player = new Player(gameData.playerBmp);
@@ -165,16 +165,15 @@ int main(int argc, char **argv)
 					player->updatePlayer();
 					player->gravityPull(groundbk.getY());
 
-					bg.updateBackground();
+					bg.update();
 
-					groundbk.updateBackground();
+					groundbk.update();
 
 					gameTime = al_current_time();
 
 					if (pcount < 10)
 					{
 						bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes),displayWindow);
-						bg_pipes->setvelX(-configData->GetDifficulty() * 3);
 						pipeList.push_back(bg_pipes);
 						bg_pipes->startPipes(bg, pcount++);
 					}
@@ -194,14 +193,14 @@ int main(int argc, char **argv)
 							player->addScore();
 						}
 
-						if ((*pipeI)->getX() < -(*pipeI)->getBgWidth())
+						if ((*pipeI)->getX() < -(*pipeI)->getWidth())
 						{
 							PipeBk* firstPipe = pipeList.front();
 							PipeBk* lastPipe = pipeList.back();
+
 							firstPipe->setX(lastPipe->getX() + 300);
 							pipeI = pipeList.erase(pipeI);
 							pipeList.push_back(firstPipe);
-							std::cout << "Pipe new loc: " << firstPipe->getX() << std::endl;
 						}
 						else
 						{
@@ -264,12 +263,4 @@ int main(int argc, char **argv)
 	al_destroy_config(config);
 
 	return 0;
-}
-
-void RegisterEventSources(GameData &gameData)
-{
-	al_register_event_source(gameData.event_queue, al_get_display_event_source(gameData.display));
-	al_register_event_source(gameData.event_queue, al_get_keyboard_event_source());
-	al_register_event_source(gameData.event_queue, al_get_mouse_event_source());
-	al_register_event_source(gameData.event_queue, al_get_timer_event_source(gameData.timer));
 }

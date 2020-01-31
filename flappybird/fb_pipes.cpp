@@ -7,10 +7,10 @@ PipeBk::PipeBk()
 	velX = -1.0;
 	velY = 0;
 
-	bgwidth = 0;
-	bgheight = 0;
+	width = 0;
+	height = 0;
 
-	bg = (ALLEGRO_BITMAP*)0;
+	image = (ALLEGRO_BITMAP*)0;
 
 	boundXup = 0;
 	boundYup = 0;
@@ -20,17 +20,17 @@ PipeBk::PipeBk()
 
 	alive = true;
 }
-PipeBk::PipeBk(ALLEGRO_BITMAP* image, int width, int height, Window *_win)
+PipeBk::PipeBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 {
 	x = 0;
 	y = 0;
 	velX = -3.0;
 	velY = 0;
 
-	bgwidth = width;
-	bgheight = height;
+	width = w;
+	height = h;
 
-	bg = image;
+	image = img;
 
 	win = _win;
 
@@ -80,7 +80,7 @@ int PipeBk::getBoundYdown()
 	return boundYdown;
 }
 
-void PipeBk::startPipes(FbBackground back, int mul)
+void PipeBk::startPipes(Background back, int mul)
 {
 	x = win->getWidth() + mul * 300;
 	y = win->getHeight() / 4 + (rand() % (int)((win->getHeight() - 2 * win->getHeight() / 5) - win->getHeight() / 4 + 1));
@@ -88,20 +88,20 @@ void PipeBk::startPipes(FbBackground back, int mul)
 
 void PipeBk::drawPipes()
 {
-	al_draw_scaled_bitmap(bg,
+	al_draw_scaled_bitmap(image,
 		0, 0,
-		bgwidth, bgheight,
-		x - bgwidth / 2, y - boundFreeY - bgheight,
-		bgwidth, bgheight,
+		width, height,
+		x - width / 2, y - boundFreeY - height,
+		width, height,
 		0);
-	al_draw_scaled_bitmap(bg,
+	al_draw_scaled_bitmap(image,
 		0, 0,
-		bgwidth, bgheight,
-		x - bgwidth / 2, y + boundFreeY,
-		bgwidth, bgheight,
+		width, height,
+		x - width / 2, y + boundFreeY,
+		width, height,
 		-1);
 
-	if (x < 0 - bgwidth - 5)
+	if (x < 0 - width - 5)
 	{
 		alive = false;
 	}
@@ -112,7 +112,12 @@ void PipeBk::updatePipes()
 	x += velX;
 }
 
-bool PipeBk::groundCollision(int x, int y)
+void PipeBk::update()
 {
-	return false;
+	updatePipes();
+}
+
+void PipeBk::draw()
+{
+	drawPipes();
 }

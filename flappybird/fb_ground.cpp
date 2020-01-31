@@ -7,23 +7,23 @@ GroundBk::GroundBk()
 	velX = -1.0;
 	velY = 0;
 
-	bg = (ALLEGRO_BITMAP*)0;
+	image = (ALLEGRO_BITMAP*)0;
 
 	boundx = SCREEN_W;
 	boundy = 0;
 }
 
-GroundBk::GroundBk(ALLEGRO_BITMAP* image, int width, int height, Window *_win)
+GroundBk::GroundBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 {
 	x = 0;
 
 	velX = -1.0;
 	velY = 0;
 
-	bgwidth = width;
-	bgheight = height;
+	width = w;
+	height = h;
 
-	bg = image;
+	image = img;
 
 	win = _win;
 
@@ -32,7 +32,6 @@ GroundBk::GroundBk(ALLEGRO_BITMAP* image, int width, int height, Window *_win)
 	boundx = SCREEN_W;
 	boundy = height;
 }
-
 
 void GroundBk::setBoundX(int x)
 {
@@ -51,21 +50,35 @@ int GroundBk::getBoundY()
 	return boundy;
 }
 
+void GroundBk::update() 
+{
+	x += velX;
+	if (x + width <= 0)
+	{
+		x = 0;
+	}
+}
+
+void GroundBk::draw()
+{
+	drawGround();
+}
+
 void GroundBk::drawGround()
 {
-	al_draw_scaled_bitmap(bg, 0, 0,
-		al_get_bitmap_width(bg),
-		al_get_bitmap_height(bg),
+	al_draw_scaled_bitmap(image, 0, 0,
+		al_get_bitmap_width(image),
+		al_get_bitmap_height(image),
 		x, y,
-		win->getWidth(), al_get_bitmap_height(bg), 0);
+		win->getWidth(), al_get_bitmap_height(image), 0);
 
-	if (x + bgwidth < SCREEN_W)
+	if (x + width < SCREEN_W)
 	{
-		al_draw_scaled_bitmap(bg, 0, 0,
-			al_get_bitmap_width(bg),
-			al_get_bitmap_height(bg),
-			x + bgwidth, y,
-			win->getWidth(), al_get_bitmap_height(bg), 0);
+		al_draw_scaled_bitmap(image, 0, 0,
+			al_get_bitmap_width(image),
+			al_get_bitmap_height(image),
+			x + width, y,
+			win->getWidth(), al_get_bitmap_height(image), 0);
 	}
 }
 

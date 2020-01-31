@@ -2,7 +2,7 @@
 
 #include "fb_globals.h"
 #include "player.h"
-#include "fb_bitmap.h"
+#include "fb_background.h"
 #include "config.h"
 #include "sound_manager.h"
 
@@ -25,11 +25,13 @@ struct GameData
 GameData InitializeGameData(GameData data, ConfigAPI* config);
 void DestroyGameData(GameData data);
 
+
 void installAddons();
 void installSound(SoundManager* target);
 
 bool GetFullscreenValue(const char* c);
 void tellTime(ALLEGRO_FONT*,int, Window*);
-void drawGameAspects(FbBackground, Player*, std::list<PipeBk *>::iterator, std::list<PipeBk *>,ALLEGRO_FONT*,Window*,int time, bool debugMode);
+void drawGameAspects(Background, Player*, std::list<PipeBk *>::iterator, std::list<PipeBk *>,ALLEGRO_FONT*,Window*,int time, bool debugMode);
 std::string const highscore_string(int);
 
+void RegisterEventSources(GameData &gameData);

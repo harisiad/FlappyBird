@@ -1,10 +1,12 @@
 #ifndef _FLAPPYBIRD_ENVIRONMENT_PIPES_H_
 #define _FLAPPYBIRD_ENVIRONMENT_PIPES_H_
 
-#include "fb_bitmap.h"
+#include "fb_globals.h"
+#include "fb_window.h"
+#include "fb_game_object.h"
+#include "fb_background.h"
 
-class PipeBk : public FbBackground
-{
+class PipeBk : public GameObject {
 private:
 	int boundXup;
 	int boundYup;
@@ -35,10 +37,12 @@ public:
 	void setAlivePipe(bool value) { alive = value; }
 	bool getAlivePipe() { return alive; }
 
-	bool groundCollision(int, int);
 	void drawPipes();
 	void updatePipes();
-	void startPipes(FbBackground, int);
+	void startPipes(Background, int);
+
+	void update();
+	void draw();
 };
 
 #endif

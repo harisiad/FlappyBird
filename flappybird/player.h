@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fb_globals.h"
-#include "fb_bitmap.h"
+#include "fb_background.h"
 #include "fb_pipes.h"
 #include "fb_window.h"
 #include "fb_ground.h"
