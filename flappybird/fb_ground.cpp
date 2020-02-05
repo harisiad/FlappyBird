@@ -15,7 +15,10 @@ GroundBk::GroundBk()
 
 GroundBk::GroundBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 {
+	win = _win;
+
 	x = 0;
+	y = win->getHeight() - 50;
 
 	velX = -1.0;
 	velY = 0;
@@ -24,11 +27,7 @@ GroundBk::GroundBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 	height = h;
 
 	image = img;
-
-	win = _win;
-
-	y = win->getHeight() - 50;
-
+	
 	boundx = SCREEN_W;
 	boundy = height;
 }
@@ -85,4 +84,10 @@ void GroundBk::drawGround()
 bool GroundBk::groundCollision(int x, int y)
 {
 	return false;
+}
+
+
+void GroundBk::resetPlay()
+{
+	x = 0;
 }

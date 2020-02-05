@@ -15,6 +15,8 @@ class Background : public GameObject {
 
 		void updateBackground();
 		void drawBackground();
+
+		void resetPlay();
 };
 
 #endif

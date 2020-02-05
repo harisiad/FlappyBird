@@ -121,3 +121,9 @@ void PipeBk::draw()
 {
 	drawPipes();
 }
+
+void PipeBk::resetPlay()
+{
+	x = 0;
+	y = 0;
+}

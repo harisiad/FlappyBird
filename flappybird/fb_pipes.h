@@ -51,6 +51,8 @@ public:
 
 	void update();
 	void draw();
+
+	void resetPlay();
 };
 
 #endif

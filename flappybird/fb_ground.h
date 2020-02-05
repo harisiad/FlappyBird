@@ -24,6 +24,8 @@ public:
 
 	void drawGround();
 	bool groundCollision(int, int);
+
+	void resetPlay();
 };
 
 #endif

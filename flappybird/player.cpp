@@ -7,7 +7,7 @@ Player::Player(ALLEGRO_BITMAP* image)
 	x = SCREEN_W / 5;
 	y = SCREEN_H / 2;
 	velX = 0;
-	velY = 6;
+	velY = 7.5f;
 	gravity = 0.35;
 	rotation = 0;
 
@@ -41,13 +41,14 @@ void Player::updatePlayer()
 {
 	if (y < 5)
 	{
-		y = 10;
+		y = 5;
 	}
 	else 
 	{
 		velY -= gravity;
 		y += -velY;
 	}
+
 	if (++framecount >= framedelay)
 	{
 		currframe += animationDirection;
@@ -62,19 +63,15 @@ void Player::updatePlayer()
 		framecount = 0;
 	}
 }
-void Player::gravityPull(int groundHeight)
+bool Player::gravityPull(int groundHeight)
 {
-	rotation -= 5.0;
-	
-	if (y + boundY >= groundHeight) 
+	if (y + boundY >= groundHeight)
 	{
 		y = groundHeight - boundY;
-		Player::setGameOver();
+		return true;
 	}
-	if (rotation <= -90.0) 
-	{
-		rotation = -90.0;
-	}
+
+	return false;
 }
 
 void Player::drawPlayer()
@@ -140,4 +137,23 @@ bool Player::passMark(PipeBk* pipe)
 bool Player::collideGround(GroundBk ground)
 {
 	return false;
+}
+
+void Player::resetPlayer()
+{
+	x = SCREEN_W / 5;
+	y = SCREEN_H / 2;
+
+	velY = 7.5f;
+	
+	currframe = 0;
+
+	score = 0;
+	gameOver = false;
+	godMode = false;
+}
+
+void Player::resetGravity()
+{
+	gravity = 0.35;
 }

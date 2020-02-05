@@ -57,3 +57,8 @@ void Background::drawBackground(){
 			al_get_bitmap_width(image), win->getHeight(), 0);
 	}
 }
+
+void Background::resetPlay()
+{
+	x = 0;
+}

@@ -20,6 +20,7 @@ struct GameData
 	ALLEGRO_BITMAP *pipes = (ALLEGRO_BITMAP*)0;								//ALLEGRO BITMAP PIPES
 	ALLEGRO_BITMAP *playerBmp = (ALLEGRO_BITMAP*)0;							//ALLEGRO BITMAP FLAPPY
 	ALLEGRO_BITMAP *gameOverScreen = (ALLEGRO_BITMAP*)0;					//ALLEGRO BITMAP GAMEOVER DISPLAY
+	ALLEGRO_BITMAP *replayButton = (ALLEGRO_BITMAP*)0;						//ALLEGRO BITMAP REPLAY BUTTON
 	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
 	ALLEGRO_FONT *gameOverFont = (ALLEGRO_FONT*)0;							//ALLEGRO GAMEOVER SCORE DISPLAY
 	unsigned code = 000;
@@ -31,19 +32,28 @@ struct GameModes
 	bool pause;
 	bool debug;
 };
+struct Scene
+{
+	Background bg;
+	GroundBk groundbk;
+	PipeBk* bg_pipes;
+	Player* player;
+};
+enum Stages {StartMenu, CountDown, MainGame, GameOver};
 
 class FBGame : public Acts
 {
 	protected:
 		GameData gameData;
 		GameModes gameModes;
+		Scene scene;
 		ConfigAPI *configData;
 		Window *displayWindow = new Window();
 		SoundManager *soundManager = new SoundManager();
 
-		enum FLAP { UP };
-		bool FLAPS[1] = { false };
-		int pipeCount = 0;
+		int pipeCount = pipeList.size();
+		float gameTime = 0.0f;
+		int currentStage = Stages::MainGame;
 
 		std::list<PipeBk *> pipeList;
 		std::list<PipeBk *>::iterator pipeI;
@@ -65,6 +75,8 @@ class FBGame : public Acts
 
 		bool GetFullscreenValue(const char* c);
 
+		void MainGame();
+
 		void ActsPlayLoop();
 		void ActsProgramme();
 		void PauseAct();
@@ -72,6 +84,7 @@ class FBGame : public Acts
 		void DebugAct();
 		void OpenCurtains();
 		void CloseCurtains();
+		void ResetPlay();
 };
 
 #endif

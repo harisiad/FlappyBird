@@ -39,9 +39,9 @@ public:
 
 	Player(ALLEGRO_BITMAP* image = NULL);
 	void Destroy();
-
+	inline float getVelY() { return velY; }
 	void updatePlayer();
-	void gravityPull(int);
+	bool gravityPull(int);
 	void drawPlayer();
 
 	void setX(float x) { Player::x = x; }
@@ -60,7 +60,7 @@ public:
 	void addScore() { score++; }
 	int getScore() { return score; }
 	bool isGameOver() { return gameOver; }
-	void setGameOver() { gameOver = true; }
+	void setGameOver() { if (gameOver) gameOver = false; else gameOver = true; }
 	void setHighscore(int _highscore) { highscore = _highscore; }
 	int getHighscore() { return highscore; }
 
@@ -75,4 +75,7 @@ public:
 	bool collideGround(GroundBk);
 	bool passMark(PipeBk*);
 
+	void resetPlayer();
+	void resetGravity();
+	inline float getGravity() { return gravity; }
 };

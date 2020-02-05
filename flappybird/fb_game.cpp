@@ -103,6 +103,13 @@ void FBGame::InitializeGameData()
 		gameData.code = ERR_GAMEOVERSCREEN_LD;
 	}
 
+	gameData.replayButton = al_load_bitmap("replay.png");				//Game Over Bitmap Load
+	if (!gameData.replayButton)
+	{
+		fprintf(stderr, "failed to load replay button!\n");
+		gameData.code = ERR_GAMEOVERSCREEN_LD;
+	}
+
 	gameData.font = al_load_ttf_font("8bit.ttf", 18, 0);
 	if (!gameData.font)
 	{
@@ -260,6 +267,7 @@ void FBGame::DrawGameAspects(Background bg, Player* player, std::list<PipeBk *>:
 			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", player->getY());
 			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", player->getBoundX());
 			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", player->getBoundY());
+			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", player->getVelY());
 
 			al_draw_textf(font, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
 		}
@@ -301,21 +309,126 @@ bool FBGame::GetFullscreenValue(const char* c)
 	return tmp;
 }
 
+void FBGame::MainGame()
+{
+	if (!scene.player->isGameOver())
+	{
+		if (!gameModes.pause)
+		{
+			bool isMoved = false;
+			pipeCount = pipeList.size();
+			
+			scene.player->updatePlayer();
+
+			scene.bg.update();
+
+			scene.groundbk.update();
+
+			gameTime = al_current_time();
+
+			if (pipeCount < 10)
+			{
+				scene.bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+				pipeList.push_back(scene.bg_pipes);
+				scene.bg_pipes->startPipes(scene.bg, pipeCount++);
+			}
+
+			for (PipeBk* pipe : pipeList)
+			{
+				if ((scene.player->collidePipes(pipe) && (!scene.player->getGodMode())) || 
+					scene.player->gravityPull(scene.groundbk.getY()))
+				{
+					soundManager->playCollisionSound();
+					scene.player->setGameOver();
+					break;
+				}
+
+				bool pipeHit = scene.player->passMark(pipe);
+				if (pipeHit)
+				{
+					soundManager->playSuccessSound();
+					scene.player->addScore();
+					pipe->setScored(true);
+				}
+
+				if (pipe->getX() < -pipe->getWidth() * 2)
+				{
+					PipeBk* firstPipe = pipeList.front();
+					PipeBk* lastPipe = pipeList.back();
+
+					firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
+
+					isMoved = true;
+				}
+				else
+				{
+					pipe->updatePipes();
+				}
+			}
+
+			if (isMoved)
+			{
+				PipeBk* firstPipe = pipeList.front();
+
+				firstPipe->setScored(false);
+
+				pipeList.pop_front();
+				pipeList.push_back(firstPipe);
+
+				isMoved = false;
+			}
+		}
+	}
+
+	gameModes.redraw = true;
+
+	if ((gameModes.redraw && al_event_queue_is_empty(gameData.event_queue)) && (!gameModes.pause))
+	{
+
+		gameModes.redraw = false;
+
+		//Draws Every Element of the Game
+		DrawGameAspects(
+			scene.bg,
+			scene.player,
+			pipeI,
+			pipeList,
+			gameData.font,
+			displayWindow,
+			gameTime,
+			gameModes.debug
+		);
+
+		//Draws Time
+		TellTime(gameData.font, gameTime, displayWindow);
+
+		if (scene.player->isGameOver())
+		{
+			currentStage = Stages::GameOver;
+		}
+
+		scene.groundbk.drawGround();
+		al_flip_display();
+		al_map_rgb(0, 0, 0);
+	}
+}
+
 void FBGame::ActsPlayLoop()
 {
-	Background bg(gameData.background, al_get_bitmap_width(gameData.background), displayWindow->getHeight(), displayWindow);
-	GroundBk groundbk(gameData.ground, al_get_bitmap_width(gameData.ground), al_get_bitmap_height(gameData.ground), displayWindow);
-	PipeBk *bg_pipes = new PipeBk();
-	Player *player = new Player(gameData.playerBmp);
-
-	float gameTime = 0.0;
+	scene.bg = Background(gameData.background, al_get_bitmap_width(gameData.background), displayWindow->getHeight(), displayWindow);
+	scene.groundbk = GroundBk(gameData.ground, al_get_bitmap_width(gameData.ground), al_get_bitmap_height(gameData.ground), displayWindow);
+	scene.bg_pipes = new PipeBk();
+	scene.player = new Player(gameData.playerBmp);
 
 	al_start_timer(gameData.timer);
 	gameTime = al_current_time();
 
-	player->setHighscore(configData->GetHighScore());
+	if (currentStage == Stages::MainGame)
+	{
+		scene.player->setHighscore(configData->GetHighScore());
 
-	soundManager->playThemeSong();
+		soundManager->playThemeSong();
+	}
 
 	while (!gameModes.running)
 	{
@@ -332,38 +445,18 @@ void FBGame::ActsPlayLoop()
 			{
 			case ALLEGRO_KEY_P:
 			{
-				if (gameModes.pause)
-				{
-					gameModes.pause = false;
-				}
-				else
-				{
-					gameModes.pause = true;
-				}
+				PauseAct();
 				break;
 			}
 			case ALLEGRO_KEY_G:
 			{
-				if (player->getGodMode())
-				{
-					player->setGodModeOff();
-				}
-				else
-				{
-					player->setGodModeOn();
-				}
+				CheatTheGame();
 				break;
 			}
 			case ALLEGRO_KEY_D:
 			{
-				if (gameModes.debug)
-				{
-					gameModes.debug = false;
-				}
-				else
-				{
-					gameModes.debug = true;
-				}
+				DebugAct();
+				break;
 			}
 			case ALLEGRO_KEY_ESCAPE:
 				break;
@@ -374,10 +467,25 @@ void FBGame::ActsPlayLoop()
 		{
 			if (ev.mouse.button & 1)
 			{
-				if (!player->isGameOver())
+				if (!scene.player->isGameOver() &&
+					currentStage == Stages::MainGame)
 				{
 					soundManager->playFlapSound();
-					player->gainHeight();
+					scene.player->gainHeight();
+				}
+				else
+				{
+					ALLEGRO_MOUSE_STATE mouseState;
+
+					al_get_mouse_state(&mouseState);
+					if ((mouseState.x >= displayWindow->getWidth() / 2 - 65 &&
+						mouseState.x <= displayWindow->getWidth() / 2 + 65) &&
+						(mouseState.y >= displayWindow->getHeight() / 2 + 75 &&
+							mouseState.y <= displayWindow->getHeight() / 2 + 105))
+					{
+						currentStage = Stages::MainGame;
+						ResetPlay();
+					}
 				}
 			}
 		}
@@ -385,151 +493,128 @@ void FBGame::ActsPlayLoop()
 		{
 			if (ev.mouse.button & 1)
 			{
-				if (!player->isGameOver())
+				if (!scene.player->isGameOver())
 				{
 					//player->resetAnimation();
 				}
 			}
 		}
+		else if (ev.type == ALLEGRO_EVENT_MOUSE_AXES)
+		{
+			ALLEGRO_MOUSE_STATE mouseState;
+
+			al_get_mouse_state(&mouseState);
+			if ((mouseState.x >= displayWindow->getWidth() / 2 - 65 &&
+				mouseState.x <= displayWindow->getWidth() / 2 + 65) &&
+				(mouseState.y >= displayWindow->getHeight() / 2 + 75 &&
+					mouseState.y <= displayWindow->getHeight() / 2 + 105))
+			{
+				al_draw_textf(
+					gameData.gameOverFont,
+					al_map_rgb(0, 0, 0),
+					displayWindow->getWidth() / 2 + 6,
+					displayWindow->getHeight() / 2 + 55,
+					ALLEGRO_ALIGN_CENTER,
+					"Replay?"
+				);
+			}
+			else
+			{
+				al_draw_textf(
+					gameData.gameOverFont,
+					al_map_rgb(255, 255, 255),
+					displayWindow->getWidth() / 2 + 6,
+					displayWindow->getHeight() / 2 + 55,
+					ALLEGRO_ALIGN_CENTER,
+					"Replay?"
+				);
+			}
+		}
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY)
 		{
-			gameModes.pause = true;
+			if (!gameModes.pause &&
+				currentStage == Stages::MainGame)
+			{
+				PauseAct();
+			}
 		}
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY)
 		{
-			gameModes.pause = false;
+			PauseAct();
 		}
 		else if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
-			if (!player->isGameOver())
-			{
-				if (!gameModes.pause)
-				{
-					bool isMoved = false;
-
-					player->updatePlayer();
-					player->gravityPull(groundbk.getY());
-
-					bg.update();
-
-					groundbk.update();
-
-					gameTime = al_current_time();
-
-					if (pipeCount < 10)
-					{
-						bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
-						pipeList.push_back(bg_pipes);
-						bg_pipes->startPipes(bg, pipeCount++);
-					}
-
-					for (PipeBk* pipe : pipeList)
-					{
-						bool hit = player->passMark(pipe);
-						if (player->collidePipes(pipe) && (!player->getGodMode()))
-						{
-							soundManager->playCollisionSound();
-							player->setGameOver();
-						}
-
-						if (player->passMark(pipe))
-						{
-							soundManager->playSuccessSound();
-							player->addScore();
-							pipe->setScored(true);
-						}
-
-						if (pipe->getX() < -pipe->getWidth() * 2)
-						{
-							PipeBk* firstPipe = pipeList.front();
-							PipeBk* lastPipe = pipeList.back();
-
-							firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
-							/*pipeList.push_back(firstPipe);
-							pipeList.pop_front();*/
-							isMoved = true;
-						}
-						else
-						{
-							pipe->updatePipes();
-						}
-					}
-
-					if (isMoved)
-					{
-						PipeBk* firstPipe = pipeList.front();
-
-						firstPipe->setScored(false);
-
-						pipeList.pop_front();
-						pipeList.push_back(firstPipe);
-
-						isMoved = false;
-					}
-				}
-			}
-
-			gameModes.redraw = true;
-		}
-
-		if ((gameModes.redraw && al_event_queue_is_empty(gameData.event_queue)) && (!gameModes.pause))
-		{
-
-			gameModes.redraw = false;
-
-			//Draws Every Element of the Game
-			DrawGameAspects(
-				bg,
-				player,
-				pipeI,
-				pipeList,
-				gameData.font,
-				displayWindow,
-				gameTime,
-				gameModes.debug
-			);
-
-			//Draws Time
-			TellTime(gameData.font, gameTime, displayWindow);
-
-			if (player->isGameOver())
-			{
-				al_draw_bitmap(gameData.gameOverScreen, displayWindow->getWidth() / 2 - al_get_bitmap_width(gameData.gameOverScreen) / 2, displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.gameOverScreen) / 2, 0);
-				al_draw_textf(gameData.gameOverFont, al_map_rgb(194, 152, 45), displayWindow->getWidth() / 2 + 69, displayWindow->getHeight() / 2 - 15, ALLEGRO_ALIGN_CENTRE, "%i", player->getScore());
-			}
-
-			groundbk.drawGround();
-			al_flip_display();
-			al_map_rgb(0, 0, 0);
+			ActsProgramme();
 		}
 
 	}
 
-	if (player->getScore() > player->getHighscore())
+	if (scene.player->getScore() > scene.player->getHighscore())
 	{
-		al_set_config_value(gameData.config, "GameSettings", "HIGHSCORE", std::to_string(player->getScore()).c_str());
+		al_set_config_value(gameData.config, "GameSettings", "HIGHSCORE", std::to_string(scene.player->getScore()).c_str());
 		al_save_config_file("config_file.cfg", gameData.config);
 	}
 }
 
 void FBGame::ActsProgramme()
 {
-
+	switch (currentStage)
+	{
+		case Stages::StartMenu:
+		{
+			break;
+		}
+		case Stages::CountDown:
+		{
+			break;
+		}
+		case Stages::MainGame:
+		{
+			MainGame();
+			break;
+		}
+		case Stages::GameOver:
+		{
+			CloseCurtains();
+			break;
+		}
+	}
 }
 
 void FBGame::PauseAct()
 {
-
+	if (gameModes.pause)
+	{
+		gameModes.pause = false;
+	}
+	else
+	{
+		gameModes.pause = true;
+	}
 }
 
 void FBGame::CheatTheGame()
 {
-
+	if (scene.player->getGodMode())
+	{
+		scene.player->setGodModeOff();
+	}
+	else
+	{
+		scene.player->setGodModeOn();
+	}
 }
 
 void FBGame::DebugAct()
 {
-
+	if (gameModes.debug)
+	{
+		gameModes.debug = false;
+	}
+	else
+	{
+		gameModes.debug = true;
+	}
 }
 
 void FBGame::OpenCurtains()
@@ -539,5 +624,43 @@ void FBGame::OpenCurtains()
 
 void FBGame::CloseCurtains()
 {
+	al_draw_bitmap(
+		gameData.gameOverScreen,
+		displayWindow->getWidth() / 2 - al_get_bitmap_width(gameData.gameOverScreen) / 2,
+		displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.gameOverScreen) / 2, 
+		0
+	);
+	al_draw_textf(
+		gameData.gameOverFont,
+		al_map_rgb(194, 152, 45),
+		displayWindow->getWidth() / 2 + 69,
+		displayWindow->getHeight() / 2 - 15,
+		ALLEGRO_ALIGN_CENTRE, "%i",
+		scene.player->getScore()
+	);
 
+	al_flip_display();
+	al_map_rgb(0, 0, 0);
+}
+
+void FBGame::ResetPlay()
+{
+	scene.bg.resetPlay();
+	scene.groundbk.resetPlay();
+	gameTime = 0.0f;
+
+	scene.player->resetPlayer();
+
+	for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
+	{
+		delete (*pipeI);
+		pipeI = pipeList.erase(pipeI);
+	}
+	
+	scene.bg_pipes->resetPlay();
+
+	al_clear_to_color(al_map_rgba_f(0, 0, 0, 0.2));
+	al_flip_display();
+	
+	al_rest(0.001);
 }
