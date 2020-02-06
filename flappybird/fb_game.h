@@ -70,11 +70,12 @@ class FBGame : public Acts
 
 		void DestroyGameData();
 
-		void TellTime(ALLEGRO_FONT*, int, Window*);
-		void DrawGameAspects(Background, Player*, std::list<PipeBk *>::iterator, std::list<PipeBk *>, ALLEGRO_FONT*, Window*, int time, bool debugMode);
+		void TellTime();
+		void DrawGameAspects();
 
 		bool GetFullscreenValue(const char* c);
 
+		void CountDown();
 		void MainGame();
 
 		void ActsPlayLoop();

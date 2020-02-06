@@ -219,18 +219,17 @@ void FBGame::DestroyGameData()
 	al_destroy_config(gameData.config);
 }
 
-
-void FBGame::DrawGameAspects(Background bg, Player* player, std::list<PipeBk *>::iterator pipeI, std::list<PipeBk *> pipeList, ALLEGRO_FONT* font, Window* win, int time, bool debugMode)
+void FBGame::DrawGameAspects()
 {
-	bg.draw(); //Draw Background
+	scene.bg.draw(); //Draw Background
 
-	player->drawPlayer(); //Draw Flappy
+	scene.player->drawPlayer(); //Draw Flappy
 
 	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
 	{
 		(*pipeI)->draw();
 		/*Bound Boxes of Pipes and Space in between*/
-		if (debugMode)
+		if (gameModes.debug)
 		{
 			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXup(),
 				(*pipeI)->getY() - (*pipeI)->getBoundFreeY() - (*pipeI)->getBoundYup(),
@@ -256,41 +255,42 @@ void FBGame::DrawGameAspects(Background bg, Player* player, std::list<PipeBk *>:
 				(*pipeI)->getY() + 5,
 				al_map_rgb(255, 0, 0));
 
-			al_draw_filled_rectangle(player->getX() - player->getWidth() / 2,
-				player->getY() - player->getHeight() / 2,
-				player->getX() + player->getBoundX(),
-				player->getY() + player->getBoundY(),
+			al_draw_filled_rectangle(scene.player->getX() - scene.player->getWidth() / 2,
+				scene.player->getY() - scene.player->getHeight() / 2,
+				scene.player->getX() + scene.player->getBoundX(),
+				scene.player->getY() + scene.player->getBoundY(),
 				al_map_rgb(255, 0, 0));
 
-			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) - 20, ALLEGRO_ALIGN_LEFT, "Player");
-			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, SCREEN_H / 2, ALLEGRO_ALIGN_LEFT, "X: %.3f", player->getX());
-			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", player->getY());
-			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", player->getBoundX());
-			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", player->getBoundY());
-			al_draw_textf(font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", player->getVelY());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) - 20, ALLEGRO_ALIGN_LEFT, "Player");
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, SCREEN_H / 2, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", scene.player->getBoundX());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
 
-			al_draw_textf(font, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
+			al_draw_textf(gameData.font, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
 		}
 	}
-	al_draw_filled_rectangle(player->getX(),
-		player->getY(),
-		player->getX(),
-		player->getY(),
-		al_map_rgb(0, 0, 255));
+	scene.groundbk.drawGround();
+
 	//Draw Score
-	al_draw_textf(font, al_map_rgb(255, 255, 255), win->getWidth() / 2, 20, ALLEGRO_ALIGN_CENTRE, "%i", player->getScore());
-	al_draw_textf(font, al_map_rgb(255, 255, 255), win->getWidth() - 20, 20, ALLEGRO_ALIGN_RIGHT, "High Score: %i", player->getHighscore());
+	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() / 2, 20, ALLEGRO_ALIGN_CENTRE, "%i", scene.player->getScore());
+	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() - 20, 20, ALLEGRO_ALIGN_RIGHT, "High Score: %i", scene.player->getHighscore());
+	
+	//Draws Time
+	TellTime();
 }
 
 /*Draws Time*/
-void FBGame::TellTime(ALLEGRO_FONT* font, int sec, Window* win)
+void FBGame::TellTime()
 {
+	int sec = gameTime;
 	int minutes = (sec / 60);
 	if (sec >= 60)
 	{		// 60 secs go back to count 0
 		sec = sec % 60;
 	}
-	al_draw_textf(font, al_map_rgb(255, 255, 255), 10, 20, ALLEGRO_ALIGN_LEFT, "Time: %.2i:%.2i", minutes, (int)sec);
+	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), 10, 20, ALLEGRO_ALIGN_LEFT, "Time: %.2i:%.2i", minutes, (int)sec);
 }
 
 bool FBGame::GetFullscreenValue(const char* c)
@@ -307,6 +307,11 @@ bool FBGame::GetFullscreenValue(const char* c)
 	}
 
 	return tmp;
+}
+
+void FBGame::CountDown()
+{
+
 }
 
 void FBGame::MainGame()
@@ -388,26 +393,13 @@ void FBGame::MainGame()
 		gameModes.redraw = false;
 
 		//Draws Every Element of the Game
-		DrawGameAspects(
-			scene.bg,
-			scene.player,
-			pipeI,
-			pipeList,
-			gameData.font,
-			displayWindow,
-			gameTime,
-			gameModes.debug
-		);
-
-		//Draws Time
-		TellTime(gameData.font, gameTime, displayWindow);
+		DrawGameAspects();
 
 		if (scene.player->isGameOver())
 		{
 			currentStage = Stages::GameOver;
 		}
 
-		scene.groundbk.drawGround();
 		al_flip_display();
 		al_map_rgb(0, 0, 0);
 	}
@@ -470,10 +462,18 @@ void FBGame::ActsPlayLoop()
 				if (!scene.player->isGameOver() &&
 					currentStage == Stages::MainGame)
 				{
-					soundManager->playFlapSound();
+					if (!gameModes.pause)
+					{
+						soundManager->playFlapSound();
+					}
+					else
+					{
+						PauseAct();
+					}
 					scene.player->gainHeight();
 				}
-				else
+				else if (scene.player->isGameOver() &&
+					currentStage == Stages::GameOver)
 				{
 					ALLEGRO_MOUSE_STATE mouseState;
 
@@ -540,7 +540,7 @@ void FBGame::ActsPlayLoop()
 		}
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY)
 		{
-			PauseAct();
+			// PauseAct();
 		}
 		else if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
@@ -566,6 +566,7 @@ void FBGame::ActsProgramme()
 		}
 		case Stages::CountDown:
 		{
+			CountDown();
 			break;
 		}
 		case Stages::MainGame:
