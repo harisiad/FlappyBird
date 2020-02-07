@@ -22,6 +22,7 @@ struct GameData
 	ALLEGRO_BITMAP *gameOverScreen = (ALLEGRO_BITMAP*)0;					//ALLEGRO BITMAP GAMEOVER DISPLAY
 	ALLEGRO_BITMAP *replayButton = (ALLEGRO_BITMAP*)0;						//ALLEGRO BITMAP REPLAY BUTTON
 	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
+	ALLEGRO_FONT *debugFont = (ALLEGRO_FONT*)0;
 	ALLEGRO_FONT *gameOverFont = (ALLEGRO_FONT*)0;							//ALLEGRO GAMEOVER SCORE DISPLAY
 	unsigned code = 000;
 };
@@ -76,10 +77,12 @@ class FBGame : public Acts
 		bool GetFullscreenValue(const char* c);
 
 		void CountDown();
+		void DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown);
 		void SceneDraw();
 		void MainGame();
 
 		void ActsPlayLoop();
+		void DrawGameOverReplay();
 		void ActsProgramme();
 		void PauseAct();
 		void CheatTheGame();
