@@ -41,6 +41,7 @@ public:
 	void Destroy();
 	inline float getVelY() { return velY; }
 	void updatePlayer();
+	void updateSpriteAnimation();
 	bool gravityPull(int);
 	void drawPlayer();
 

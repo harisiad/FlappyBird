@@ -45,6 +45,8 @@ void FBGame::InitializeGameData()
 		std::stof(al_get_config_value(gameData.config, "GameSettings", "DIFFICULT")),
 		std::atoi(al_get_config_value(gameData.config, "GameSettings", "HIGHSCORE")));
 
+	InitializeWindow();
+
 	gameData.timer = al_create_timer(1.0 / FPS);
 	if (!gameData.timer)
 	{
@@ -102,14 +104,7 @@ void FBGame::InitializeGameData()
 		fprintf(stderr, "failed to load gameover bitmap!\n");
 		gameData.code = ERR_GAMEOVERSCREEN_LD;
 	}
-
-	gameData.replayButton = al_load_bitmap("replay.png");				//Game Over Bitmap Load
-	if (!gameData.replayButton)
-	{
-		fprintf(stderr, "failed to load replay button!\n");
-		gameData.code = ERR_GAMEOVERSCREEN_LD;
-	}
-
+	
 	gameData.font = al_load_ttf_font("8bit.ttf", 18, 0);
 	if (!gameData.font)
 	{
@@ -221,6 +216,11 @@ void FBGame::DestroyGameData()
 
 void FBGame::DrawGameAspects()
 {
+	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
+
+	al_set_target_bitmap(buffer);
+	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
+
 	scene.bg.draw(); //Draw Background
 
 	scene.player->drawPlayer(); //Draw Flappy
@@ -254,19 +254,19 @@ void FBGame::DrawGameAspects()
 				(*pipeI)->getX() + 5,
 				(*pipeI)->getY() + 5,
 				al_map_rgb(255, 0, 0));
-
+			/*
 			al_draw_filled_rectangle(scene.player->getX() - scene.player->getWidth() / 2,
 				scene.player->getY() - scene.player->getHeight() / 2,
 				scene.player->getX() + scene.player->getBoundX(),
 				scene.player->getY() + scene.player->getBoundY(),
 				al_map_rgb(255, 0, 0));
-
-			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) - 20, ALLEGRO_ALIGN_LEFT, "Player");
-			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, SCREEN_H / 2, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
-			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
-			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", scene.player->getBoundX());
-			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
-			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 2) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
+				*/
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) - 20, ALLEGRO_ALIGN_LEFT, "Player");
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, SCREEN_H / 4, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", scene.player->getBoundX());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
+			al_draw_textf(gameData.font, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
 
 			al_draw_textf(gameData.font, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
 		}
@@ -279,6 +279,10 @@ void FBGame::DrawGameAspects()
 	
 	//Draws Time
 	TellTime();
+
+	al_set_target_bitmap(al_get_backbuffer(gameData.display));
+	al_draw_bitmap(buffer, 0, 0, 0);
+	al_destroy_bitmap(buffer);
 }
 
 /*Draws Time*/
@@ -311,97 +315,155 @@ bool FBGame::GetFullscreenValue(const char* c)
 
 void FBGame::CountDown()
 {
+	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth()/8, displayWindow->getHeight() / 8);
+	
+	gameModes.redraw = true;
+	if (gameModes.redraw)
+	{
+		gameModes.redraw = false;
+		
+		SceneDraw();
+		
+		for (int countDown = 3; countDown > 0; countDown--)
+		{
+			SceneDraw();
+			
+			al_set_target_bitmap(buffer);
+			al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
 
+			al_draw_textf(
+				gameData.gameOverFont,
+				al_map_rgb(255, 255, 255),
+				al_get_bitmap_width(buffer)/2 - 10,
+				al_get_bitmap_height(buffer)/2 - 35,
+				ALLEGRO_ALIGN_CENTER,
+				"%i", countDown);
+						
+			al_set_target_bitmap(al_get_backbuffer(gameData.display));
+			al_draw_bitmap(
+				buffer, 
+				displayWindow->getWidth() / 2 - 50,
+				displayWindow->getHeight() / 2 - 35,
+				0);
+
+			
+			al_flip_display();
+			al_rest(1.0);	
+		}
+		currentStage = Stages::MainGame;
+	}
+	al_destroy_bitmap(buffer);
+}
+
+void FBGame::SceneDraw()
+{
+	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
+
+	al_set_target_bitmap(buffer);
+	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
+
+	scene.bg.draw();
+	scene.player->drawPlayer();
+	scene.player->updateSpriteAnimation();
+	scene.groundbk.draw();
+
+	al_set_target_bitmap(al_get_backbuffer(gameData.display));
+	al_draw_bitmap(buffer, 0, 0, 0);
+	al_destroy_bitmap(buffer);
 }
 
 void FBGame::MainGame()
 {
-	if (!scene.player->isGameOver())
+	if (al_event_queue_is_empty(gameData.event_queue))
 	{
-		if (!gameModes.pause)
+		if (!scene.player->isGameOver())
 		{
-			bool isMoved = false;
-			pipeCount = pipeList.size();
+			if (!gameModes.pause)
+
+			{
+				bool isMoved = false;
+				pipeCount = pipeList.size();
 			
-			scene.player->updatePlayer();
+				scene.player->updatePlayer();
+				std::cout << scene.player->getVelY() << " - " << scene.player->getY() << std::endl;
+				scene.bg.update();
 
-			scene.bg.update();
+				scene.groundbk.update();
 
-			scene.groundbk.update();
+				gameTime = al_current_time();
 
-			gameTime = al_current_time();
-
-			if (pipeCount < 10)
-			{
-				scene.bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
-				pipeList.push_back(scene.bg_pipes);
-				scene.bg_pipes->startPipes(scene.bg, pipeCount++);
-			}
-
-			for (PipeBk* pipe : pipeList)
-			{
-				if ((scene.player->collidePipes(pipe) && (!scene.player->getGodMode())) || 
-					scene.player->gravityPull(scene.groundbk.getY()))
+				if (pipeCount < 10)
 				{
-					soundManager->playCollisionSound();
-					scene.player->setGameOver();
-					break;
+					scene.bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+					pipeList.push_back(scene.bg_pipes);
+					scene.bg_pipes->startPipes(scene.bg, pipeCount++);
 				}
 
-				bool pipeHit = scene.player->passMark(pipe);
-				if (pipeHit)
+				for (PipeBk* pipe : pipeList)
 				{
-					soundManager->playSuccessSound();
-					scene.player->addScore();
-					pipe->setScored(true);
+					if ((scene.player->collidePipes(pipe) && (!scene.player->getGodMode())) || 
+						scene.player->gravityPull(scene.groundbk.getY()))
+					{
+						soundManager->playCollisionSound();
+						scene.player->setGameOver();
+						break;
+					}
+
+					bool pipeHit = scene.player->passMark(pipe);
+					if (pipeHit)
+					{
+						soundManager->playSuccessSound();
+						scene.player->addScore();
+						pipe->setScored(true);
+					}
+
+					if (pipe->getX() < -pipe->getWidth() * 2)
+					{
+						PipeBk* firstPipe = pipeList.front();
+						PipeBk* lastPipe = pipeList.back();
+
+						firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
+
+						isMoved = true;
+					}
+					else
+					{
+						pipe->updatePipes();
+					}
 				}
 
-				if (pipe->getX() < -pipe->getWidth() * 2)
+				if (isMoved)
 				{
 					PipeBk* firstPipe = pipeList.front();
-					PipeBk* lastPipe = pipeList.back();
 
-					firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
+					firstPipe->setScored(false);
 
-					isMoved = true;
+					pipeList.pop_front();
+					pipeList.push_back(firstPipe);
+
+					isMoved = false;
 				}
-				else
-				{
-					pipe->updatePipes();
-				}
-			}
-
-			if (isMoved)
-			{
-				PipeBk* firstPipe = pipeList.front();
-
-				firstPipe->setScored(false);
-
-				pipeList.pop_front();
-				pipeList.push_back(firstPipe);
-
-				isMoved = false;
 			}
 		}
-	}
 
-	gameModes.redraw = true;
+		gameModes.redraw = true;
 
-	if ((gameModes.redraw && al_event_queue_is_empty(gameData.event_queue)) && (!gameModes.pause))
-	{
-
-		gameModes.redraw = false;
-
-		//Draws Every Element of the Game
-		DrawGameAspects();
-
-		if (scene.player->isGameOver())
+		if (gameModes.redraw && (!gameModes.pause))
 		{
-			currentStage = Stages::GameOver;
-		}
 
-		al_flip_display();
-		al_map_rgb(0, 0, 0);
+			gameModes.redraw = false;
+
+			//Draws Every Element of the Game
+			DrawGameAspects();
+
+			if (scene.player->isGameOver())
+			{
+				currentStage = Stages::GameOver;
+			}
+
+			al_flip_display();
+			al_map_rgb(0, 0, 0);
+		}
 	}
 }
 
@@ -451,6 +513,7 @@ void FBGame::ActsPlayLoop()
 				break;
 			}
 			case ALLEGRO_KEY_ESCAPE:
+				gameModes.running = true;
 				break;
 			}
 
@@ -483,8 +546,9 @@ void FBGame::ActsPlayLoop()
 						(mouseState.y >= displayWindow->getHeight() / 2 + 75 &&
 							mouseState.y <= displayWindow->getHeight() / 2 + 105))
 					{
-						currentStage = Stages::MainGame;
+						currentStage = Stages::CountDown;
 						ResetPlay();
+						scene.player->resetAnimation();
 					}
 				}
 			}
@@ -538,15 +602,10 @@ void FBGame::ActsPlayLoop()
 				PauseAct();
 			}
 		}
-		else if (ev.type == ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY)
-		{
-			// PauseAct();
-		}
 		else if (ev.type == ALLEGRO_EVENT_TIMER)
 		{
 			ActsProgramme();
 		}
-
 	}
 
 	if (scene.player->getScore() > scene.player->getHighscore())

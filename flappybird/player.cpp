@@ -5,9 +5,9 @@ using namespace std;
 Player::Player(ALLEGRO_BITMAP* image)
 {
 	x = SCREEN_W / 5;
-	y = SCREEN_H / 2;
+	y = SCREEN_H / 3;
 	velX = 0;
-	velY = 7.5f;
+	velY = 6.0f;
 	gravity = 0.35;
 	rotation = 0;
 
@@ -49,6 +49,11 @@ void Player::updatePlayer()
 		y += -velY;
 	}
 
+	updateSpriteAnimation();
+}
+
+void Player::updateSpriteAnimation()
+{
 	if (++framecount >= framedelay)
 	{
 		currframe += animationDirection;
@@ -63,6 +68,7 @@ void Player::updatePlayer()
 		framecount = 0;
 	}
 }
+
 bool Player::gravityPull(int groundHeight)
 {
 	if (y + boundY >= groundHeight)
@@ -88,7 +94,7 @@ void Player::drawPlayer()
 void Player::gainHeight()
 {
 	animationRow = 1;
-	velY = 6;
+	velY = 6.0f;
 	rotation += 10.0;
 	if (rotation >= 10.0)
 	{ 
@@ -142,9 +148,9 @@ bool Player::collideGround(GroundBk ground)
 void Player::resetPlayer()
 {
 	x = SCREEN_W / 5;
-	y = SCREEN_H / 2;
+	y = SCREEN_H / 3;
 
-	velY = 7.5f;
+	velY = 6.0f;
 	
 	currframe = 0;
 

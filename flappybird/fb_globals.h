@@ -13,7 +13,10 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5\allegro_audio.h>
 #include <allegro5\allegro_acodec.h>
+#include <allegro5\bitmap_draw.h>
 #include <list>
+#include <thread>
+#include <chrono>
 
 const int SCREEN_W = 800;
 const int SCREEN_H = 600;
