@@ -41,9 +41,10 @@ public:
 	ALLEGRO_MIXER* getMixer(){ return mixer; }
 
 	void playThemeSong();
+	void playGameOverSong();
 	void playFlapSound();
 	void playCollisionSound();
 	void playSuccessSound();
 
-	void pauseThemeSong();
+	void stopThemeSong();
 };

@@ -332,8 +332,9 @@ bool FBGame::GetFullscreenValue(const char* c)
 
 void FBGame::CountDown()
 {
-	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth()/8, displayWindow->getHeight()/8);
 	static double COUNTLIMIT = 3;
+	
+	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth()/8, displayWindow->getHeight()/8);
 	clock_t startTime = clock();
 	float secondsPassed;
 	double fpsCounter;
@@ -432,6 +433,8 @@ void FBGame::MainGame()
 			{
 				bool isMoved = false;
 				pipeCount = pipeList.size();
+
+				soundManager->playThemeSong();
 			
 				scene.player->updatePlayer();
 				scene.bg.update();
@@ -503,6 +506,7 @@ void FBGame::MainGame()
 
 			if (scene.player->isGameOver())
 			{
+				soundManager->playGameOverSong();
 				currentStage = Stages::GameOver;
 			}
 
@@ -522,13 +526,8 @@ void FBGame::ActsPlayLoop()
 	al_start_timer(gameData.timer);
 	gameTime = clock();
 
-	if (currentStage == Stages::MainGame)
-	{
-		scene.player->setHighscore(configData->GetHighScore());
-
-		soundManager->playThemeSong();
-	}
-
+	scene.player->setHighscore(configData->GetHighScore());
+	
 	while (!gameModes.running)
 	{
 		ALLEGRO_EVENT ev;
@@ -604,15 +603,8 @@ void FBGame::ActsPlayLoop()
 			{
 				if (!scene.player->isGameOver())
 				{
-					//player->resetAnimation();
+					scene.player->resetAnimation();
 				}
-			}
-		}
-		else if (ev.type == ALLEGRO_EVENT_MOUSE_AXES)
-		{
-			if (scene.player->isGameOver())
-			{
-				DrawGameOverReplay();
 			}
 		}
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY)
@@ -757,6 +749,8 @@ void FBGame::CloseCurtains()
 		scene.player->getScore()
 	);
 
+	DrawGameOverReplay();
+
 	al_flip_display();
 	al_map_rgb(0, 0, 0);
 }
@@ -780,5 +774,7 @@ void FBGame::ResetPlay()
 	al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.2));
 	al_flip_display();
 	
+	soundManager->stopThemeSong();
+
 	al_rest(0.001);
 }

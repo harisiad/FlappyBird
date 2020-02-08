@@ -113,10 +113,23 @@ void SoundManager::playThemeSong()
 {
 	al_set_sample_instance_playmode(theme_song, ALLEGRO_PLAYMODE_LOOP);
 	al_set_sample_instance_gain(theme_song, 0.7);
-	al_play_sample_instance(theme_song);
+	al_set_sample_instance_speed(theme_song, 1.0);
+	if (!al_get_sample_instance_playing(theme_song))
+	{
+		al_play_sample_instance(theme_song);
+	}
 }
 
-void SoundManager::pauseThemeSong()
+void SoundManager::playGameOverSong()
+{
+	if (al_get_sample_instance_playing(theme_song))
+	{
+		al_set_sample_instance_playmode(theme_song, ALLEGRO_PLAYMODE_LOOP);
+		al_set_sample_instance_speed(theme_song, 0.75);
+	}
+}
+
+void SoundManager::stopThemeSong()
 {
 	al_stop_sample_instance(theme_song);
 }
