@@ -77,6 +77,8 @@ class FBGame : public Acts
 		bool GetFullscreenValue(const char* c);
 
 		void CountDown();
+		bool CountDownFPSLimitVerifier(double fpsCounter);
+		bool AnimationFPSLimitVerifier(double fpsCounter);
 		void DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown);
 		void SceneDraw();
 		void MainGame();

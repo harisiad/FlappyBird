@@ -305,8 +305,8 @@ void FBGame::DrawGameAspects()
 /*Draws Time*/
 void FBGame::TellTime()
 {
-	int sec = gameTime;
-	int minutes = (sec / 60);
+	int sec = (clock() - gameTime) / CLOCKS_PER_SEC;
+	int minutes = sec / 60;
 	if (sec >= 60)
 	{		// 60 secs go back to count 0
 		sec = sec % 60;
@@ -333,23 +333,51 @@ bool FBGame::GetFullscreenValue(const char* c)
 void FBGame::CountDown()
 {
 	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth()/8, displayWindow->getHeight()/8);
+	static double COUNTLIMIT = 3;
+	clock_t startTime = clock();
+	float secondsPassed;
+	double fpsCounter;
+	bool countDownStillGoing = true;
 	
 	gameModes.redraw = true;
 	if (gameModes.redraw)
 	{
 		gameModes.redraw = false;
 		
-		SceneDraw();
-		
-		for (int countDown = 3; countDown > 0; countDown--)
+		while(countDownStillGoing)
 		{
-			SceneDraw();
+			secondsPassed = COUNTLIMIT - ((clock() - startTime) / CLOCKS_PER_SEC);
+			fpsCounter = clock() - startTime;
 			
-			DrawCountDownTimer(buffer, countDown);	
+			if (AnimationFPSLimitVerifier(fpsCounter))
+			{
+				SceneDraw();
+			}
+			if (CountDownFPSLimitVerifier(fpsCounter))
+			{
+				DrawCountDownTimer(buffer, secondsPassed);
+			}
+			if (secondsPassed <= 0)
+			{
+				countDownStillGoing = false;
+			}
 		}
+		scene.player->resetAnimation();
 		currentStage = Stages::MainGame;
+		
+		gameTime = clock();
 	}
 	al_destroy_bitmap(buffer);
+}
+
+bool FBGame::CountDownFPSLimitVerifier(double fpsCounter)
+{
+	return (int)fpsCounter % (int)FPS == 0;
+}
+
+bool FBGame::AnimationFPSLimitVerifier(double fpsCounter)
+{
+	return (int)fpsCounter % (int)(FPS / 3) == 0;
 }
 
 void FBGame::DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown)
@@ -373,7 +401,7 @@ void FBGame::DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown)
 		0);
 
 	al_flip_display();
-	al_rest(1.0);
+	//al_rest(1.0);
 }
 
 void FBGame::SceneDraw()
@@ -390,6 +418,7 @@ void FBGame::SceneDraw()
 
 	al_set_target_bitmap(al_get_backbuffer(gameData.display));
 	al_draw_bitmap(buffer, 0, 0, 0);
+
 	al_destroy_bitmap(buffer);
 }
 
@@ -407,8 +436,6 @@ void FBGame::MainGame()
 				scene.player->updatePlayer();
 				scene.bg.update();
 				scene.groundbk.update();
-				
-				gameTime = al_current_time();
 
 				if (pipeCount < 10)
 				{
@@ -493,7 +520,7 @@ void FBGame::ActsPlayLoop()
 	scene.player = new Player(gameData.playerBmp);
 
 	al_start_timer(gameData.timer);
-	gameTime = al_current_time();
+	gameTime = clock();
 
 	if (currentStage == Stages::MainGame)
 	{
