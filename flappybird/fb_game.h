@@ -54,7 +54,7 @@ class FBGame : public Acts
 
 		int pipeCount = pipeList.size();
 		float gameTime = 0.0f;
-		int currentStage = Stages::CountDown;
+		int currentStage = Stages::StartMenu;
 
 		std::list<PipeBk *> pipeList;
 		std::list<PipeBk *>::iterator pipeI;
@@ -76,11 +76,20 @@ class FBGame : public Acts
 
 		bool GetFullscreenValue(const char* c);
 
-		void CountDown();
+		
 		bool CountDownFPSLimitVerifier(double fpsCounter);
 		bool AnimationFPSLimitVerifier(double fpsCounter);
 		void DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown);
 		void SceneDraw();
+		void DrawStartMenu();
+
+		void DrawExitGame();
+
+		void DrawStartGame();
+
+		void DrawGameTitle();
+
+		void CountDown();
 		void MainGame();
 
 		void ActsPlayLoop();

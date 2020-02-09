@@ -595,6 +595,26 @@ void FBGame::ActsPlayLoop()
 						scene.player->resetAnimation();
 					}
 				}
+				else if (currentStage == Stages::StartMenu)
+				{
+					ALLEGRO_MOUSE_STATE mouseState;
+
+					al_get_mouse_state(&mouseState);
+					if ((mouseState.x >= displayWindow->getWidth() / 2 - 30 &&
+						mouseState.x <= displayWindow->getWidth() / 2 + 42) &&
+						(mouseState.y >= displayWindow->getHeight() / 2 + 50 &&
+							mouseState.y <= displayWindow->getHeight() / 2 + 85))
+					{
+						gameModes.running = true;
+					}
+					else if ((mouseState.x >= displayWindow->getWidth() / 2 - 95 &&
+						mouseState.x <= displayWindow->getWidth() / 2 + 105) &&
+						(mouseState.y >= displayWindow->getHeight() / 2 + 10 &&
+							mouseState.y <= displayWindow->getHeight() / 2 + 45))
+					{
+						currentStage = Stages::CountDown;
+					}
+				}
 			}
 		}
 		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
@@ -660,12 +680,129 @@ void FBGame::DrawGameOverReplay()
 	}
 }
 
+void FBGame::DrawStartMenu()
+{
+	DrawGameTitle();
+	DrawStartGame();
+	DrawExitGame();
+}
+
+void FBGame::DrawExitGame()
+{
+	ALLEGRO_MOUSE_STATE mouseState;
+
+	if (gameModes.debug)
+	{
+		al_draw_rectangle(
+			displayWindow->getWidth() / 2 - 30,
+			displayWindow->getHeight() / 2 + 50,
+			displayWindow->getWidth() / 2 + 42,
+			displayWindow->getHeight() / 2 + 85,
+			al_map_rgb(0, 0, 0),
+			1.0
+		);
+	}
+
+	al_get_mouse_state(&mouseState);
+	if ((mouseState.x >= displayWindow->getWidth() / 2 - 30 &&
+		mouseState.x <= displayWindow->getWidth() / 2 + 42) &&
+		(mouseState.y >= displayWindow->getHeight() / 2 + 50 &&
+			mouseState.y <= displayWindow->getHeight() / 2 + 85))
+	{
+		al_draw_textf(
+			gameData.gameOverFont,
+			al_map_rgb(0, 0, 0),
+			displayWindow->getWidth() / 2 + 6,
+			displayWindow->getHeight() / 2 + 40,
+			ALLEGRO_ALIGN_CENTER,
+			"Exit"
+		);
+	}
+	else
+	{
+		al_draw_textf(
+			gameData.gameOverFont,
+			al_map_rgb(255, 255, 255),
+			displayWindow->getWidth() / 2 + 6,
+			displayWindow->getHeight() / 2 + 40,
+			ALLEGRO_ALIGN_CENTER,
+			"Exit"
+		);
+	}
+}
+
+void FBGame::DrawStartGame()
+{
+	ALLEGRO_MOUSE_STATE mouseState;
+
+	if (gameModes.debug)
+	{
+		al_draw_rectangle(
+			displayWindow->getWidth() / 2 - 95,
+			displayWindow->getHeight() / 2 + 10,
+			displayWindow->getWidth() / 2 + 105,
+			displayWindow->getHeight() / 2 + 45,
+			al_map_rgb(0, 0, 0),
+			1.0
+		);
+	}
+
+	al_get_mouse_state(&mouseState);
+	if ((mouseState.x >= displayWindow->getWidth() / 2 - 95 &&
+		mouseState.x <= displayWindow->getWidth() / 2 + 105) &&
+		(mouseState.y >= displayWindow->getHeight() / 2 + 10 &&
+			mouseState.y <= displayWindow->getHeight() / 2 + 45))
+	{
+		al_draw_textf(
+			gameData.gameOverFont,
+			al_map_rgb(0, 0, 0),
+			displayWindow->getWidth() / 2 + 6,
+			displayWindow->getHeight() / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"Start Game"
+		);
+	}
+	else
+	{
+		al_draw_textf(
+			gameData.gameOverFont,
+			al_map_rgb(255, 255, 255),
+			displayWindow->getWidth() / 2 + 6,
+			displayWindow->getHeight() / 2,
+			ALLEGRO_ALIGN_CENTER,
+			"Start Game"
+		);
+	}
+}
+void FBGame::DrawGameTitle()
+{
+	al_draw_textf(
+		gameData.gameOverFont,
+		al_map_rgb(255, 255, 255),
+		displayWindow->getWidth() / 2 + 6,
+		displayWindow->getHeight() / 6 - 25,
+		ALLEGRO_ALIGN_CENTER,
+		"Flappy Bird"
+	);
+
+	al_draw_textf(
+		gameData.font,
+		al_map_rgb(255, 255, 255),
+		displayWindow->getWidth() / 2 + 60,
+		displayWindow->getHeight() / 6 + 25,
+		ALLEGRO_ALIGN_CENTER,
+		"Not Quite"
+	);
+
+}
+
 void FBGame::ActsProgramme()
 {
 	switch (currentStage)
 	{
 		case Stages::StartMenu:
 		{
+			OpenCurtains();
 			break;
 		}
 		case Stages::CountDown:
@@ -729,7 +866,13 @@ void FBGame::DebugAct()
 
 void FBGame::OpenCurtains()
 {
+	bool openMenuStillGoing = true;
+	
+	SceneDraw();
 
+	DrawStartMenu();
+
+	al_flip_display();
 }
 
 void FBGame::CloseCurtains()
