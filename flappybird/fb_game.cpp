@@ -23,14 +23,11 @@ void FBGame::InitializeWindow()
 
 void FBGame::InitializeGameData()
 {
-	srand(time(NULL));	//Random Generation Initialization with Time
-
 	if (!al_init())
 	{
 		fprintf(stderr, "failed to initialize allegro!\n");
 	}
-
-
+	
 	gameData.config = al_load_config_file("config_file.cfg");
 	if (!gameData.config)
 	{
@@ -471,6 +468,7 @@ void FBGame::MainGame()
 						PipeBk* lastPipe = pipeList.back();
 
 						firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
+						firstPipe->recalculateY();
 
 						isMoved = true;
 					}

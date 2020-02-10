@@ -83,7 +83,17 @@ int PipeBk::getBoundYdown()
 void PipeBk::startPipes(Background back, int mul)
 {
 	x = win->getWidth() + mul * pipeDistance;
-	y = win->getHeight() / 4 + (rand() % (int)((win->getHeight() - 2 * win->getHeight() / 5) - win->getHeight() / 4 + 1));
+
+	// y = minimum possible location + rand() % maximum interval
+	// y => min - (max interval + min)
+	y = win->getHeight() / 5 + (rand() % (int)(win->getHeight()/2));
+}
+
+void PipeBk::recalculateY()
+{
+	// y = minimum possible location + rand() % maximum interval
+	// y => min - (max interval + min)
+	y = win->getHeight() / 5 + (rand() % (int)(win->getHeight()/2));
 }
 
 void PipeBk::drawPipes()

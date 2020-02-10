@@ -45,6 +45,8 @@ public:
 	void setScored(bool value) { scored = value; };
 	bool getScored() { return scored; };
 
+	void recalculateY();
+
 	void drawPipes();
 	void updatePipes();
 	void startPipes(Background, int);

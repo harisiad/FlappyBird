@@ -4,6 +4,8 @@ int main(int argc, char **argv)
 {
 	FBGame* game = new FBGame();
 
+	srand(time(NULL));
+
 	game->InitializeGameData();
 	game->InitializeWindow();
 	game->InstallSound();
