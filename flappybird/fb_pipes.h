@@ -5,6 +5,8 @@
 #include "fb_window.h"
 #include "fb_game_object.h"
 #include "fb_background.h"
+#include "MWC_Rand.h"
+
 
 class PipeBk : public GameObject {
 private:
@@ -20,6 +22,10 @@ private:
 
 	bool alive;
 	bool scored;
+
+	// MWC Random Number Generator parameters
+	unsigned int seed;
+	cmwc_state cmwc;
 
 public:
 	PipeBk();

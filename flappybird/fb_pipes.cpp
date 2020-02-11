@@ -44,6 +44,9 @@ PipeBk::PipeBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 	boundFreeY = 50;
 
 	alive = true;
+
+	seed = rand32();
+	initCMWC(&cmwc, seed);
 }
 
 void PipeBk::setBoundXup(int x)
@@ -84,16 +87,18 @@ void PipeBk::startPipes(Background back, int mul)
 {
 	x = win->getWidth() + mul * pipeDistance;
 
+	//state = lcg_rand(&state);
+	//std::cout << state << std::endl;
 	// y = minimum possible location + rand() % maximum interval
 	// y => min - (max interval + min)
-	y = win->getHeight() / 5 + (rand() % (int)(win->getHeight()/2));
+	y = win->getHeight() / 5 + (randCMWC(&cmwc) % (int)(win->getHeight() / 2));
 }
 
 void PipeBk::recalculateY()
 {
 	// y = minimum possible location + rand() % maximum interval
 	// y => min - (max interval + min)
-	y = win->getHeight() / 5 + (rand() % (int)(win->getHeight()/2));
+	y = win->getHeight() / 5 + (randCMWC(&cmwc) % (int)(win->getHeight()/2));
 }
 
 void PipeBk::drawPipes()

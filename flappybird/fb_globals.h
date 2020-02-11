@@ -16,8 +16,6 @@
 #include <allegro5\bitmap_draw.h>
 #include <ctime>
 #include <list>
-#include <thread>
-#include <chrono>
 
 const int SCREEN_W = 800;
 const int SCREEN_H = 600;
