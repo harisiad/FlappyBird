@@ -2,36 +2,40 @@
 
 using namespace std;
 
-Player::Player(ALLEGRO_BITMAP* image)
+Player::Player(ALLEGRO_BITMAP* image) :
+	x(SCREEN_W / 5),
+	y(SCREEN_H / 3),
+	velX(0),
+	velY(6.0f),
+	gravity(0.35),
+	rotation(0.0f),
+	boundX(11),
+	boundY(11),
+	maxframe(4),
+	currframe(0),
+	framecount(0),
+	framedelay(4),
+	framewidth(48),
+	frameheight(35),
+	animationColumns(1),
+	animationDirection(1),
+	animationRow(0),
+	score(0),
+	highscore(0),
+	gameOver(false),
+	godMode(false)
 {
-	x = SCREEN_W / 5;
-	y = SCREEN_H / 3;
-	velX = 0;
-	velY = 6.0f;
-	gravity = 0.35;
-	rotation = 0;
-
-	boundX = 11;
-	boundY = 11;
-
-	maxframe = 4;
-	currframe = 0;
-	framecount = 0;
-	framedelay = 4;
-	framewidth = 48;
-	frameheight = 35;
-	animationColumns = 1;
-	animationDirection = 1;
-
-	animationRow = 0;
-
-	score = 0;
-	highscore = 0;
-	gameOver = false;
-	godMode = false;
-
-	if (image != NULL){
-		Player::image = image;
+	if (image != NULL)
+	{
+		Player::image = new ALLEGRO_BITMAP*[maxframe];
+		for (int i = currframe; i < maxframe; i++)
+		{
+			Player::image[i] = al_create_sub_bitmap(image,
+				(i % animationColumns) * framewidth,
+				(i / animationColumns) * frameheight,
+				framewidth,
+				frameheight);
+		}
 	}
 }
 
@@ -54,6 +58,25 @@ void Player::updatePlayer()
 
 void Player::updateSpriteAnimation()
 {
+	if (velY > 0)
+	{
+		if (rotation > 0.0f)
+		{
+			rotation = 0.0f;
+		}
+		rotation -= .02f;
+		if (rotation < -.1f)
+		{
+			rotation = -.1f;
+		}
+	}
+	else if (velY < 0)
+	{
+		rotation += .015f;
+		if (rotation > .5f)
+			rotation = .5f;
+	}
+
 	if (++framecount >= framedelay)
 	{
 		currframe += animationDirection;
@@ -82,24 +105,23 @@ bool Player::gravityPull(int groundHeight)
 
 void Player::drawPlayer()
 {
-	int animationFrameX = (currframe % animationColumns) * framewidth;
-	int animationFrameY = (currframe / animationColumns) * frameheight;
-
-	al_draw_bitmap_region(image,
-	animationFrameX, animationFrameY,
-	framewidth, frameheight,
-	x - framewidth / 2, y - frameheight / 2, 0);
+	al_draw_scaled_rotated_bitmap(
+		image[currframe],
+		framewidth / 2,
+		frameheight / 2,
+		x,
+		y,
+		1,
+		1,
+		rotation,
+		0
+	);
 }
 
 void Player::gainHeight()
 {
 	animationRow = 1;
 	velY = 6.0f;
-	rotation += 10.0;
-	if (rotation >= 10.0)
-	{ 
-		rotation = 10.0; 
-	}
 }
 
 void Player::resetAnimation()
@@ -149,6 +171,7 @@ void Player::resetPlayer()
 {
 	x = SCREEN_W / 5;
 	y = SCREEN_H / 3;
+	rotation = 0.0f;
 
 	velY = 6.0f;
 	

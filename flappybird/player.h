@@ -34,7 +34,7 @@ protected:
 
 	int animationRow;
 
-	ALLEGRO_BITMAP *image;
+	ALLEGRO_BITMAP **image;
 public:
 
 	Player(ALLEGRO_BITMAP* image = NULL);
