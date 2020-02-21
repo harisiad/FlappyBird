@@ -96,6 +96,20 @@ void FBGame::InitializeGameData()
 		gameData.code = ERR_PLAYERBMP_LD;
 	}
 
+	gameData.godMod = al_load_bitmap("godMod.png");
+	if (!gameData.godMod)
+	{
+		fprintf(stderr, "failed to load god mod image!\n");
+		gameData.code = ERR_PLAYERBMP_LD;
+	}
+
+	gameData.godModPressed = al_load_bitmap("godModPressed.png");
+	if (!gameData.godModPressed)
+	{
+		fprintf(stderr, "failed to load god mod pressed image!\n");
+		gameData.code = ERR_PLAYERBMP_LD;
+	}
+
 	gameData.gameOverScreen = al_load_bitmap("gameover.png");				//Game Over Bitmap Load
 	if (!gameData.gameOverScreen)
 	{
@@ -205,7 +219,6 @@ void FBGame::RegisterEventSources()
 	al_register_event_source(gameData.event_queue, al_get_timer_event_source(gameData.timer));
 }
 
-
 void FBGame::DestroyGameData()
 {
 	al_destroy_bitmap(gameData.playerBmp);
@@ -259,13 +272,13 @@ void FBGame::DrawGameAspects()
 				(*pipeI)->getX() + 5,
 				(*pipeI)->getY() + 5,
 				al_map_rgb(255, 0, 0));
-			/*
+
 			al_draw_filled_rectangle(scene.player->getX() - scene.player->getWidth() / 2,
 				scene.player->getY() - scene.player->getHeight() / 2,
 				scene.player->getX() + scene.player->getBoundX(),
 				scene.player->getY() + scene.player->getBoundY(),
 				al_map_rgb(255, 0, 0));
-				*/
+
 			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) - 20, ALLEGRO_ALIGN_LEFT, "Player");
 			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, SCREEN_H / 4, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
 			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
@@ -285,14 +298,50 @@ void FBGame::DrawGameAspects()
 	//Draws Time
 	TellTime();
 
+	float scaleGodModRate = .6f;
+
 	//Draw GodMode disclaimer
 	if (scene.player->getGodMode())
 	{
-		al_draw_textf(gameData.font, al_map_rgb(0, 0, 0), 10, displayWindow->getHeight() - 25, ALLEGRO_ALIGN_CENTRE, "G");
+		ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+			gameData.godModPressed, 
+			0, 
+			0,
+			al_get_bitmap_width(gameData.godModPressed),
+			al_get_bitmap_height(gameData.godModPressed));
+
+		al_draw_scaled_rotated_bitmap(tmp, 
+			0,
+			0,
+			10, 
+			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * scaleGodModRate,
+			scaleGodModRate,
+			scaleGodModRate,
+			0.0f,
+			0);
+
+		al_destroy_bitmap(tmp);
 	}
 	else
 	{
-		al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), 10, displayWindow->getHeight() - 25, ALLEGRO_ALIGN_CENTRE, "G");
+		ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+			gameData.godMod,
+			0,
+			0,
+			al_get_bitmap_width(gameData.godMod), 
+			al_get_bitmap_height(gameData.godMod));
+
+		al_draw_scaled_rotated_bitmap(tmp,
+			0,
+			0,
+			10,
+			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * scaleGodModRate,
+			scaleGodModRate,
+			scaleGodModRate,
+			0.0f,
+			0);
+
+		al_destroy_bitmap(tmp);
 	}
 
 	al_set_target_bitmap(al_get_backbuffer(gameData.display));
@@ -306,7 +355,7 @@ void FBGame::TellTime()
 	int sec = (clock() - gameTime) / CLOCKS_PER_SEC;
 	int minutes = sec / 60;
 	if (sec >= 60)
-	{		// 60 secs go back to count 0
+	{// 60 secs go back to count 0
 		sec = sec % 60;
 	}
 	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), 10, 20, ALLEGRO_ALIGN_LEFT, "Time: %.2i:%.2i", minutes, (int)sec);
@@ -331,7 +380,7 @@ bool FBGame::GetFullscreenValue(const char* c)
 void FBGame::CountDown()
 {
 	secondsPassed = ((clock() - gameTime) / CLOCKS_PER_SEC) + 1;
-	std::cout << secondsPassed << std::endl;
+	
 	SceneDraw();
 
 	if (secondsPassed > 0 &&
@@ -348,7 +397,6 @@ void FBGame::CountDown()
 		secondsPassed = 3.0f;
 		gameTime = clock();
 	}
-
 }
 
 void FBGame::DrawCountDownTimer(int countDown)
