@@ -298,7 +298,7 @@ void FBGame::DrawGameAspects()
 	//Draws Time
 	TellTime();
 
-	float scaleGodModRate = .6f;
+	static float SCALE_GODMOD_RATE = .6f;
 
 	//Draw GodMode disclaimer
 	if (scene.player->getGodMode())
@@ -314,9 +314,9 @@ void FBGame::DrawGameAspects()
 			0,
 			0,
 			10, 
-			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * scaleGodModRate,
-			scaleGodModRate,
-			scaleGodModRate,
+			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
 			0.0f,
 			0);
 
@@ -335,9 +335,9 @@ void FBGame::DrawGameAspects()
 			0,
 			0,
 			10,
-			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * scaleGodModRate,
-			scaleGodModRate,
-			scaleGodModRate,
+			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
 			0.0f,
 			0);
 
