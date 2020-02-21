@@ -1,6 +1,7 @@
 #include "fb_game.h"
 
-FBGame::FBGame()
+FBGame::FBGame() :
+	secondsPassed(3.0f)
 {
 
 }
@@ -329,60 +330,34 @@ bool FBGame::GetFullscreenValue(const char* c)
 
 void FBGame::CountDown()
 {
-	static double COUNTLIMIT = 3;
-	
-	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth()/8, displayWindow->getHeight()/8);
-	clock_t startTime = clock();
-	float secondsPassed;
-	double fpsCounter;
-	bool countDownStillGoing = true;
-	
-	gameModes.redraw = true;
-	if (gameModes.redraw)
+	secondsPassed = ((clock() - gameTime) / CLOCKS_PER_SEC) + 1;
+	std::cout << secondsPassed << std::endl;
+	SceneDraw();
+
+	if (secondsPassed > 0 &&
+		secondsPassed < 4)
 	{
-		gameModes.redraw = false;
+		DrawCountDownTimer(secondsPassed);
+	}
 		
-		while(countDownStillGoing)
-		{
-			secondsPassed = COUNTLIMIT - ((clock() - startTime) / CLOCKS_PER_SEC);
-			fpsCounter = clock() - startTime;
-			
-			if (AnimationFPSLimitVerifier(fpsCounter))
-			{
-				SceneDraw();
-			}
-			if (CountDownFPSLimitVerifier(fpsCounter))
-			{
-				DrawCountDownTimer(buffer, secondsPassed);
-			}
-			if (secondsPassed <= 0)
-			{
-				countDownStillGoing = false;
-			}
-		}
-		scene.player->resetAnimation();
+	if (secondsPassed >= 3.9f)
+	{
 		currentStage = Stages::MainGame;
-		
+		scene.player->resetAnimation();
+
+		secondsPassed = 3.0f;
 		gameTime = clock();
 	}
-	al_destroy_bitmap(buffer);
+
 }
 
-bool FBGame::CountDownFPSLimitVerifier(double fpsCounter)
+void FBGame::DrawCountDownTimer(int countDown)
 {
-	return (int)fpsCounter % (int)FPS == 0;
-}
+	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth() / 8, displayWindow->getHeight() / 8);
 
-bool FBGame::AnimationFPSLimitVerifier(double fpsCounter)
-{
-	return (int)fpsCounter % (int)(FPS / 3) == 0;
-}
-
-void FBGame::DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown)
-{
 	al_set_target_bitmap(buffer);
 	al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
-
+	
 	al_draw_textf(
 		gameData.gameOverFont,
 		al_map_rgb(255, 255, 255),
@@ -399,7 +374,8 @@ void FBGame::DrawCountDownTimer(ALLEGRO_BITMAP * buffer, int countDown)
 		0);
 
 	al_flip_display();
-	//al_rest(1.0);
+	
+	al_destroy_bitmap(buffer);
 }
 
 void FBGame::SceneDraw()
@@ -422,96 +398,94 @@ void FBGame::SceneDraw()
 
 void FBGame::MainGame()
 {
-	if (al_event_queue_is_empty(gameData.event_queue))
+	if (!scene.player->isGameOver())
 	{
-		if (!scene.player->isGameOver())
+		if (!gameModes.pause)
 		{
-			if (!gameModes.pause)
-			{
-				bool isMoved = false;
-				pipeCount = pipeList.size();
+			bool isMoved = false;
+			pipeCount = pipeList.size();
 
-				soundManager->playThemeSong();
+			soundManager->playThemeSong();
 			
-				scene.player->updatePlayer();
-				scene.bg.update();
-				scene.groundbk.update();
+			scene.player->updatePlayer();
+			scene.bg.update();
+			scene.groundbk.update();
 
-				if (pipeCount < 10)
+			if (pipeCount < 10)
+			{
+				scene.bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+				pipeList.push_back(scene.bg_pipes);
+				scene.bg_pipes->startPipes(scene.bg, pipeCount++);
+			}
+
+			for (PipeBk* pipe : pipeList)
+			{
+				if ((scene.player->collidePipes(pipe) && (!scene.player->getGodMode())) || 
+					scene.player->gravityPull(scene.groundbk.getY()))
 				{
-					scene.bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
-					pipeList.push_back(scene.bg_pipes);
-					scene.bg_pipes->startPipes(scene.bg, pipeCount++);
+					soundManager->playCollisionSound();
+					scene.player->setGameOver();
+					break;
 				}
 
-				for (PipeBk* pipe : pipeList)
+				bool pipeHit = scene.player->passMark(pipe);
+				if (pipeHit)
 				{
-					if ((scene.player->collidePipes(pipe) && (!scene.player->getGodMode())) || 
-						scene.player->gravityPull(scene.groundbk.getY()))
-					{
-						soundManager->playCollisionSound();
-						scene.player->setGameOver();
-						break;
-					}
-
-					bool pipeHit = scene.player->passMark(pipe);
-					if (pipeHit)
-					{
-						soundManager->playSuccessSound();
-						scene.player->addScore();
-						pipe->setScored(true);
-					}
-
-					if (pipe->getX() < -pipe->getWidth() * 2)
-					{
-						PipeBk* firstPipe = pipeList.front();
-						PipeBk* lastPipe = pipeList.back();
-
-						firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
-						firstPipe->recalculateY();
-
-						isMoved = true;
-					}
-					else
-					{
-						pipe->updatePipes();
-					}
+					soundManager->playSuccessSound();
+					scene.player->addScore();
+					pipe->setScored(true);
 				}
 
-				if (isMoved)
+				if (pipe->getX() < -pipe->getWidth() * 2)
 				{
 					PipeBk* firstPipe = pipeList.front();
+					PipeBk* lastPipe = pipeList.back();
 
-					firstPipe->setScored(false);
+					firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
+					firstPipe->recalculateY();
 
-					pipeList.pop_front();
-					pipeList.push_back(firstPipe);
-
-					isMoved = false;
+					isMoved = true;
+				}
+				else
+				{
+					pipe->updatePipes();
 				}
 			}
-		}
 
-		gameModes.redraw = true;
-
-		if (gameModes.redraw && (!gameModes.pause))
-		{
-
-			gameModes.redraw = false;
-
-			//Draws Every Element of the Game
-			DrawGameAspects();
-
-			if (scene.player->isGameOver())
+			if (isMoved)
 			{
-				soundManager->playGameOverSong();
-				currentStage = Stages::GameOver;
-			}
+				PipeBk* firstPipe = pipeList.front();
 
-			al_flip_display();
-			al_map_rgb(0, 0, 0);
+				firstPipe->setScored(false);
+
+				pipeList.pop_front();
+				pipeList.push_back(firstPipe);
+
+				isMoved = false;
+			}
 		}
 	}
+
+	gameModes.redraw = true;
+
+	if (gameModes.redraw && (!gameModes.pause))
+	{
+
+		gameModes.redraw = false;
+
+		//Draws Every Element of the Game
+		DrawGameAspects();
+
+		if (scene.player->isGameOver())
+		{
+			soundManager->playGameOverSong();
+			currentStage = Stages::GameOver;
+		}
+
+		al_flip_display();
+		al_map_rgb(0, 0, 0);
+	}
+	
 }
 
 void FBGame::ActsPlayLoop()
@@ -528,16 +502,16 @@ void FBGame::ActsPlayLoop()
 	
 	while (!gameModes.running)
 	{
-		ALLEGRO_EVENT ev;
-		al_wait_for_event(gameData.event_queue, &ev);
+		// ALLEGRO_EVENT ev;
+		al_wait_for_event(gameData.event_queue, &event);
 
-		if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
 		{
 			gameModes.running = true;
 		}
-		else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
+		else if (event.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
-			switch (ev.keyboard.keycode)
+			switch (event.keyboard.keycode)
 			{
 			case ALLEGRO_KEY_P:
 			{
@@ -560,12 +534,33 @@ void FBGame::ActsPlayLoop()
 			}
 
 		}
-		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
+		else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN)
 		{
-			if (ev.mouse.button & 1)
+			if (event.mouse.button & 1)
 			{
-				if (!scene.player->isGameOver() &&
-					currentStage == Stages::MainGame)
+				if (currentStage == Stages::StartMenu)
+				{
+					ALLEGRO_MOUSE_STATE mouseState;
+
+					al_get_mouse_state(&mouseState);
+					if ((mouseState.x >= displayWindow->getWidth() / 2 - 30 &&
+						mouseState.x <= displayWindow->getWidth() / 2 + 42) &&
+						(mouseState.y >= displayWindow->getHeight() / 2 + 50 &&
+							mouseState.y <= displayWindow->getHeight() / 2 + 85))
+					{
+						gameModes.running = true;
+					}
+					else if ((mouseState.x >= displayWindow->getWidth() / 2 - 95 &&
+						mouseState.x <= displayWindow->getWidth() / 2 + 105) &&
+						(mouseState.y >= displayWindow->getHeight() / 2 + 10 &&
+							mouseState.y <= displayWindow->getHeight() / 2 + 45))
+					{
+						currentStage = Stages::CountDown;
+						gameTime = clock();
+					}
+				}
+				else if (!scene.player->isGameOver() &&
+						currentStage == Stages::MainGame)
 				{
 					if (!gameModes.pause)
 					{
@@ -588,36 +583,19 @@ void FBGame::ActsPlayLoop()
 						(mouseState.y >= displayWindow->getHeight() / 2 + 75 &&
 							mouseState.y <= displayWindow->getHeight() / 2 + 105))
 					{
-						currentStage = Stages::CountDown;
 						ResetPlay();
 						scene.player->resetAnimation();
-					}
-				}
-				else if (currentStage == Stages::StartMenu)
-				{
-					ALLEGRO_MOUSE_STATE mouseState;
-
-					al_get_mouse_state(&mouseState);
-					if ((mouseState.x >= displayWindow->getWidth() / 2 - 30 &&
-						mouseState.x <= displayWindow->getWidth() / 2 + 42) &&
-						(mouseState.y >= displayWindow->getHeight() / 2 + 50 &&
-							mouseState.y <= displayWindow->getHeight() / 2 + 85))
-					{
-						gameModes.running = true;
-					}
-					else if ((mouseState.x >= displayWindow->getWidth() / 2 - 95 &&
-						mouseState.x <= displayWindow->getWidth() / 2 + 105) &&
-						(mouseState.y >= displayWindow->getHeight() / 2 + 10 &&
-							mouseState.y <= displayWindow->getHeight() / 2 + 45))
-					{
+						
+						// Count down
+						gameTime = clock();
 						currentStage = Stages::CountDown;
 					}
 				}
 			}
 		}
-		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
+		else if (event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
 		{
-			if (ev.mouse.button & 1)
+			if (event.mouse.button & 1)
 			{
 				if (!scene.player->isGameOver())
 				{
@@ -625,7 +603,7 @@ void FBGame::ActsPlayLoop()
 				}
 			}
 		}
-		else if (ev.type == ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY)
+		else if (event.type == ALLEGRO_EVENT_MOUSE_LEAVE_DISPLAY)
 		{
 			if (!gameModes.pause &&
 				currentStage == Stages::MainGame)
@@ -633,9 +611,12 @@ void FBGame::ActsPlayLoop()
 				PauseAct();
 			}
 		}
-		else if (ev.type == ALLEGRO_EVENT_TIMER)
+		else if (event.type == ALLEGRO_EVENT_TIMER)
 		{
-			ActsProgramme();
+			if (al_event_queue_is_empty(gameData.event_queue))
+			{
+				ActsProgramme();
+			}
 		}
 	}
 
