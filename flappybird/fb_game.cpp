@@ -249,44 +249,7 @@ void FBGame::DrawGameAspects()
 		/*Bound Boxes of Pipes and Space in between*/
 		if (gameModes.debug)
 		{
-			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXup(),
-				(*pipeI)->getY() - (*pipeI)->getBoundFreeY() - (*pipeI)->getBoundYup(),
-				(*pipeI)->getX() + (*pipeI)->getBoundXup(),
-				(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
-				al_map_rgb(255, 0, 0));
-
-			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXdown(),
-				(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
-				(*pipeI)->getX() + (*pipeI)->getBoundXdown(),
-				(*pipeI)->getY() + (*pipeI)->getBoundFreeY() + 2 * (*pipeI)->getBoundYdown(),
-				al_map_rgb(0, 0, 255));
-
-			al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundFreeX(),
-				(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
-				(*pipeI)->getX() + (*pipeI)->getBoundFreeX(),
-				(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
-				al_map_rgb(255, 0, 255));
-
-			al_draw_filled_rectangle((*pipeI)->getX() - 5,
-				(*pipeI)->getY() - 5,
-				(*pipeI)->getX() + 5,
-				(*pipeI)->getY() + 5,
-				al_map_rgb(255, 0, 0));
-
-			al_draw_filled_rectangle(scene.player->getX() - scene.player->getWidth() / 2,
-				scene.player->getY() - scene.player->getHeight() / 2,
-				scene.player->getX() + scene.player->getBoundX(),
-				scene.player->getY() + scene.player->getBoundY(),
-				al_map_rgb(255, 0, 0));
-
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) - 20, ALLEGRO_ALIGN_LEFT, "Player");
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, SCREEN_H / 4, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", scene.player->getBoundX());
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
-
-			al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
+			DrawDebugMode();
 		}
 	}
 	scene.groundbk.drawGround();
@@ -300,53 +263,99 @@ void FBGame::DrawGameAspects()
 
 	static float SCALE_GODMOD_RATE = .6f;
 
-	//Draw GodMode disclaimer
-	if (scene.player->getGodMode())
+	if (!gameModes.debug)
 	{
-		ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
-			gameData.godModPressed, 
-			0, 
-			0,
-			al_get_bitmap_width(gameData.godModPressed),
-			al_get_bitmap_height(gameData.godModPressed));
 
-		al_draw_scaled_rotated_bitmap(tmp, 
-			0,
-			0,
-			10, 
-			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
-			SCALE_GODMOD_RATE,
-			SCALE_GODMOD_RATE,
-			0.0f,
-			0);
+		//Draw GodMode disclaimer
+		if (scene.player->getGodMode())
+		{
+			ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+				gameData.godModPressed, 
+				0, 
+				0,
+				al_get_bitmap_width(gameData.godModPressed),
+				al_get_bitmap_height(gameData.godModPressed));
 
-		al_destroy_bitmap(tmp);
-	}
-	else
-	{
-		ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
-			gameData.godMod,
-			0,
-			0,
-			al_get_bitmap_width(gameData.godMod), 
-			al_get_bitmap_height(gameData.godMod));
+			al_draw_scaled_rotated_bitmap(tmp, 
+				0,
+				0,
+				10, 
+				displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
+				SCALE_GODMOD_RATE,
+				SCALE_GODMOD_RATE,
+				0.0f,
+				0);
 
-		al_draw_scaled_rotated_bitmap(tmp,
-			0,
-			0,
-			10,
-			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
-			SCALE_GODMOD_RATE,
-			SCALE_GODMOD_RATE,
-			0.0f,
-			0);
+			al_destroy_bitmap(tmp);
+		}
+		else
+		{
+			ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+				gameData.godMod,
+				0,
+				0,
+				al_get_bitmap_width(gameData.godMod), 
+				al_get_bitmap_height(gameData.godMod));
 
-		al_destroy_bitmap(tmp);
+			al_draw_scaled_rotated_bitmap(tmp,
+				0,
+				0,
+				10,
+				displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
+				SCALE_GODMOD_RATE,
+				SCALE_GODMOD_RATE,
+				0.0f,
+				0);
+
+			al_destroy_bitmap(tmp);
+		}
 	}
 
 	al_set_target_bitmap(al_get_backbuffer(gameData.display));
 	al_draw_bitmap(buffer, 0, 0, 0);
 	al_destroy_bitmap(buffer);
+}
+
+void FBGame::DrawDebugMode()
+{
+	al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXup(),
+		(*pipeI)->getY() - (*pipeI)->getBoundFreeY() - (*pipeI)->getBoundYup(),
+		(*pipeI)->getX() + (*pipeI)->getBoundXup(),
+		(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
+		al_map_rgb(255, 0, 0));
+
+	al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXdown(),
+		(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
+		(*pipeI)->getX() + (*pipeI)->getBoundXdown(),
+		(*pipeI)->getY() + (*pipeI)->getBoundFreeY() + 2 * (*pipeI)->getBoundYdown(),
+		al_map_rgb(0, 0, 255));
+
+	al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundFreeX(),
+		(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
+		(*pipeI)->getX() + (*pipeI)->getBoundFreeX(),
+		(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
+		al_map_rgb(255, 0, 255));
+
+	al_draw_filled_rectangle((*pipeI)->getX() - 5,
+		(*pipeI)->getY() - 5,
+		(*pipeI)->getX() + 5,
+		(*pipeI)->getY() + 5,
+		al_map_rgb(255, 0, 0));
+
+	al_draw_filled_rectangle(scene.player->getX() - scene.player->getWidth() / 2,
+		scene.player->getY() - scene.player->getHeight() / 2,
+		scene.player->getX() + scene.player->getBoundX(),
+		scene.player->getY() + scene.player->getBoundY(),
+		al_map_rgb(255, 0, 0));
+
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) - 20, ALLEGRO_ALIGN_LEFT, "Player");
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, SCREEN_H / 4, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", scene.player->getBoundX());
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
+
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
 }
 
 /*Draws Time*/
