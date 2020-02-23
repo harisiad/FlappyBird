@@ -379,17 +379,19 @@ bool FBGame::GetFullscreenValue(const char* c)
 
 void FBGame::CountDown()
 {
-	secondsPassed = ((clock() - gameTime) / CLOCKS_PER_SEC) + 1;
+	static int COUNT_DOWN_LIMIT = 3;
+
+	secondsPassed = COUNT_DOWN_LIMIT - ((clock() - gameTime) / CLOCKS_PER_SEC) + 1;
 	
 	SceneDraw();
 
-	if (secondsPassed > 0 &&
-		secondsPassed < 4)
+	if (secondsPassed <= 3.9 &&
+		secondsPassed >= 1)
 	{
 		DrawCountDownTimer(secondsPassed);
 	}
 		
-	if (secondsPassed >= 3.9f)
+	if (secondsPassed <= 0.1f)
 	{
 		currentStage = Stages::MainGame;
 		scene.player->resetAnimation();
@@ -404,7 +406,7 @@ void FBGame::DrawCountDownTimer(int countDown)
 	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth() / 8, displayWindow->getHeight() / 8);
 
 	al_set_target_bitmap(buffer);
-	al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.0));
+	al_clear_to_color(al_map_rgba_f(0.0f, 0.0f, 0.0f, 0.0f));
 	
 	al_draw_textf(
 		gameData.gameOverFont,
@@ -431,7 +433,7 @@ void FBGame::SceneDraw()
 	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
 
 	al_set_target_bitmap(buffer);
-	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
+	al_clear_to_color(al_map_rgba_f(0.0f, 0.0f, 0.0f, 1.0f));
 
 	scene.bg.draw();
 	scene.player->drawPlayer();
@@ -518,7 +520,6 @@ void FBGame::MainGame()
 
 	if (gameModes.redraw && (!gameModes.pause))
 	{
-
 		gameModes.redraw = false;
 
 		//Draws Every Element of the Game
@@ -533,7 +534,6 @@ void FBGame::MainGame()
 		al_flip_display();
 		al_map_rgb(0, 0, 0);
 	}
-	
 }
 
 void FBGame::ActsPlayLoop()
