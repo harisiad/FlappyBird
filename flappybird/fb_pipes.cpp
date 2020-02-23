@@ -87,8 +87,6 @@ void PipeBk::startPipes(Background back, int mul)
 {
 	x = win->getWidth() + mul * pipeDistance;
 
-	//state = lcg_rand(&state);
-	//std::cout << state << std::endl;
 	// y = minimum possible location + rand() % maximum interval
 	// y => min - (max interval + min)
 	y = win->getHeight() / 5 + (randCMWC(&cmwc) % (int)(win->getHeight() / 2));
@@ -103,18 +101,21 @@ void PipeBk::recalculateY()
 
 void PipeBk::drawPipes()
 {
+	static int ALLEGRO_NO_FLIP = 0;
+
 	al_draw_scaled_bitmap(image,
 		0, 0,
 		width, height,
 		x - width / 2, y - boundFreeY - height,
 		width, height,
-		0);
+		ALLEGRO_NO_FLIP);
+
 	al_draw_scaled_bitmap(image,
 		0, 0,
 		width, height,
 		x - width / 2, y + boundFreeY,
 		width, height,
-		-1);
+		ALLEGRO_FLIP_VERTICAL);
 
 	if (x < 0 - width - 5)
 	{
