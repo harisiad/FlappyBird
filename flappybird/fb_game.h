@@ -25,6 +25,7 @@ struct GameData
 	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
 	ALLEGRO_FONT *debugFont = (ALLEGRO_FONT*)0;
 	ALLEGRO_FONT *gameOverFont = (ALLEGRO_FONT*)0;							//ALLEGRO GAMEOVER SCORE DISPLAY
+	double fpsTimeCounter;
 	unsigned code = 000;
 };
 struct GameModes
@@ -80,8 +81,8 @@ class FBGame : public Acts
 		bool GetFullscreenValue(const char* c);
 		
 		void DrawGameAspects();
+		void DrawMainGame();
 		void DrawDebugMode();
-		void SceneDraw();
 		void DrawCountDownTimer(int countDown);
 		void DrawStartMenu();
 		void DrawExitGame();

@@ -235,6 +235,7 @@ void FBGame::DestroyGameData()
 void FBGame::DrawGameAspects()
 {
 	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
+	static float SCALE_GODMOD_RATE = .6f;
 
 	al_set_target_bitmap(buffer);
 	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
@@ -242,7 +243,87 @@ void FBGame::DrawGameAspects()
 	scene.bg.draw(); //Draw Background
 
 	scene.player->drawPlayer(); //Draw Flappy
+	if (currentStage == Stages::StartMenu)
+	{
+		scene.player->updateSpriteAnimation();
+		DrawStartMenu();
+	}
+	else if (currentStage == Stages::CountDown)
+	{
+		scene.player->updateSpriteAnimation();
+		
+		if (secondsPassed <= 3.9f &&
+			secondsPassed >= .01f)
+		{
+			DrawCountDownTimer(secondsPassed);
+		}
+	}
+	else if (currentStage == Stages::MainGame)
+	{
+		DrawMainGame();	
 
+		if (!gameModes.debug)
+		{
+			//Draw GodMode disclaimer
+			if (scene.player->getGodMode())
+			{
+				ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+					gameData.godModPressed,
+					0,
+					0,
+					al_get_bitmap_width(gameData.godModPressed),
+					al_get_bitmap_height(gameData.godModPressed));
+
+				al_draw_scaled_rotated_bitmap(tmp,
+					0,
+					0,
+					10,
+					displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
+					SCALE_GODMOD_RATE,
+					SCALE_GODMOD_RATE,
+					0.0f,
+					0);
+
+				al_destroy_bitmap(tmp);
+			}
+			else
+			{
+				ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+					gameData.godMod,
+					0,
+					0,
+					al_get_bitmap_width(gameData.godMod),
+					al_get_bitmap_height(gameData.godMod));
+
+				al_draw_scaled_rotated_bitmap(tmp,
+					0,
+					0,
+					10,
+					displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
+					SCALE_GODMOD_RATE,
+					SCALE_GODMOD_RATE,
+					0.0f,
+					0);
+
+				al_destroy_bitmap(tmp);
+			}
+		}
+	}
+	else if (currentStage == Stages::GameOver)
+	{
+		DrawGameOverReplay();
+	}
+
+	scene.groundbk.drawGround();
+
+	al_set_target_bitmap(al_get_backbuffer(gameData.display));
+	al_draw_bitmap(buffer, 0, 0, 0);
+
+	al_destroy_bitmap(buffer);
+}
+
+void FBGame::DrawMainGame()
+{
 	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
 	{
 		(*pipeI)->draw();
@@ -252,68 +333,12 @@ void FBGame::DrawGameAspects()
 			DrawDebugMode();
 		}
 	}
-	scene.groundbk.drawGround();
-
 	//Draw Score
 	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() / 2, 20, ALLEGRO_ALIGN_CENTRE, "%i", scene.player->getScore());
 	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() - 20, 20, ALLEGRO_ALIGN_RIGHT, "High Score: %i", scene.player->getHighscore());
-	
+
 	//Draws Time
 	TellTime();
-
-	static float SCALE_GODMOD_RATE = .6f;
-
-	if (!gameModes.debug)
-	{
-
-		//Draw GodMode disclaimer
-		if (scene.player->getGodMode())
-		{
-			ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
-				gameData.godModPressed, 
-				0, 
-				0,
-				al_get_bitmap_width(gameData.godModPressed),
-				al_get_bitmap_height(gameData.godModPressed));
-
-			al_draw_scaled_rotated_bitmap(tmp, 
-				0,
-				0,
-				10, 
-				displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
-				SCALE_GODMOD_RATE,
-				SCALE_GODMOD_RATE,
-				0.0f,
-				0);
-
-			al_destroy_bitmap(tmp);
-		}
-		else
-		{
-			ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
-				gameData.godMod,
-				0,
-				0,
-				al_get_bitmap_width(gameData.godMod), 
-				al_get_bitmap_height(gameData.godMod));
-
-			al_draw_scaled_rotated_bitmap(tmp,
-				0,
-				0,
-				10,
-				displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
-				SCALE_GODMOD_RATE,
-				SCALE_GODMOD_RATE,
-				0.0f,
-				0);
-
-			al_destroy_bitmap(tmp);
-		}
-	}
-
-	al_set_target_bitmap(al_get_backbuffer(gameData.display));
-	al_draw_bitmap(buffer, 0, 0, 0);
-	al_destroy_bitmap(buffer);
 }
 
 void FBGame::DrawDebugMode()
@@ -391,15 +416,7 @@ void FBGame::CountDown()
 	static int COUNT_DOWN_LIMIT = 3;
 
 	secondsPassed = COUNT_DOWN_LIMIT - ((clock() - gameTime) / CLOCKS_PER_SEC) + 1;
-	
-	SceneDraw();
 
-	if (secondsPassed <= 3.9 &&
-		secondsPassed >= 1)
-	{
-		DrawCountDownTimer(secondsPassed);
-	}
-		
 	if (secondsPassed <= 0.1f)
 	{
 		currentStage = Stages::MainGame;
@@ -412,47 +429,26 @@ void FBGame::CountDown()
 
 void FBGame::DrawCountDownTimer(int countDown)
 {
-	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth() / 8, displayWindow->getHeight() / 8);
-
-	al_set_target_bitmap(buffer);
-	al_clear_to_color(al_map_rgba_f(0.0f, 0.0f, 0.0f, 0.0f));
-	
-	al_draw_textf(
-		gameData.gameOverFont,
-		al_map_rgb(255, 255, 255),
-		al_get_bitmap_width(buffer) / 2 - 10,
-		al_get_bitmap_height(buffer) / 2 - 35,
-		ALLEGRO_ALIGN_CENTER,
-		"%i", countDown);
-
-	al_set_target_bitmap(al_get_backbuffer(gameData.display));
-	al_draw_bitmap(
-		buffer,
-		displayWindow->getWidth() / 2 - 50,
-		displayWindow->getHeight() / 2 - 35,
-		0);
-
-	al_flip_display();
-	
-	al_destroy_bitmap(buffer);
-}
-
-void FBGame::SceneDraw()
-{
-	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
-
-	al_set_target_bitmap(buffer);
-	al_clear_to_color(al_map_rgba_f(0.0f, 0.0f, 0.0f, 1.0f));
-
-	scene.bg.draw();
-	scene.player->drawPlayer();
-	scene.player->updateSpriteAnimation();
-	scene.groundbk.draw();
-
-	al_set_target_bitmap(al_get_backbuffer(gameData.display));
-	al_draw_bitmap(buffer, 0, 0, 0);
-
-	al_destroy_bitmap(buffer);
+	if (countDown != 0)
+	{
+		al_draw_textf(
+			gameData.gameOverFont,
+			al_map_rgb(255, 255, 255),
+			displayWindow->getWidth() / 2 - 10,
+			displayWindow->getHeight() / 2 - 35,
+			ALLEGRO_ALIGN_CENTER,
+			"%i", countDown);
+	}
+	else
+	{
+		al_draw_textf(
+			gameData.gameOverFont,
+			al_map_rgb(255, 255, 255),
+			displayWindow->getWidth() / 2 - 10,
+			displayWindow->getHeight() / 2 - 35,
+			ALLEGRO_ALIGN_CENTER,
+			"1");
+	}
 }
 
 void FBGame::MainGame()
@@ -524,25 +520,6 @@ void FBGame::MainGame()
 			}
 		}
 	}
-
-	gameModes.redraw = true;
-
-	if (gameModes.redraw && (!gameModes.pause))
-	{
-		gameModes.redraw = false;
-
-		//Draws Every Element of the Game
-		DrawGameAspects();
-
-		if (scene.player->isGameOver())
-		{
-			soundManager->playGameOverSong();
-			currentStage = Stages::GameOver;
-		}
-
-		al_flip_display();
-		al_map_rgb(0, 0, 0);
-	}
 }
 
 void FBGame::ActsPlayLoop()
@@ -554,12 +531,11 @@ void FBGame::ActsPlayLoop()
 
 	al_start_timer(gameData.timer);
 	gameTime = clock();
-
+	
 	scene.player->setHighscore(configData->GetHighScore());
 	
 	while (!gameModes.running)
 	{
-		// ALLEGRO_EVENT ev;
 		al_wait_for_event(gameData.event_queue, &event);
 
 		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
@@ -674,6 +650,24 @@ void FBGame::ActsPlayLoop()
 			{
 				ActsProgramme();
 			}
+			gameModes.redraw = true;
+		}
+
+		if (gameModes.redraw && (!gameModes.pause))
+		{
+			gameModes.redraw = false;
+
+			//Draws Every Element of the Game
+			DrawGameAspects();
+
+			if (scene.player->isGameOver())
+			{
+				soundManager->playGameOverSong();
+				currentStage = Stages::GameOver;
+			}
+
+			al_flip_display();
+			al_map_rgb(0, 0, 0);
 		}
 	}
 
@@ -687,6 +681,31 @@ void FBGame::ActsPlayLoop()
 void FBGame::DrawGameOverReplay()
 {
 	ALLEGRO_MOUSE_STATE mouseState;
+
+	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
+	{
+		(*pipeI)->draw();
+		/*Bound Boxes of Pipes and Space in between*/
+		if (gameModes.debug)
+		{
+			DrawDebugMode();
+		}
+	}
+
+	al_draw_bitmap(
+		gameData.gameOverScreen,
+		displayWindow->getWidth() / 2 - al_get_bitmap_width(gameData.gameOverScreen) / 2,
+		displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.gameOverScreen) / 2,
+		0
+	);
+	al_draw_textf(
+		gameData.gameOverFont,
+		al_map_rgb(194, 152, 45),
+		displayWindow->getWidth() / 2 + 69,
+		displayWindow->getHeight() / 2 - 15,
+		ALLEGRO_ALIGN_CENTRE, "%i",
+		scene.player->getScore()
+	);
 
 	al_get_mouse_state(&mouseState);
 	if ((mouseState.x >= displayWindow->getWidth() / 2 - 65 &&
@@ -901,38 +920,11 @@ void FBGame::DebugAct()
 }
 
 void FBGame::OpenCurtains()
-{
-	bool openMenuStillGoing = true;
-	
-	SceneDraw();
-
+{	
 	DrawStartMenu();
-
-	al_flip_display();
 }
 
-void FBGame::CloseCurtains()
-{
-	al_draw_bitmap(
-		gameData.gameOverScreen,
-		displayWindow->getWidth() / 2 - al_get_bitmap_width(gameData.gameOverScreen) / 2,
-		displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.gameOverScreen) / 2, 
-		0
-	);
-	al_draw_textf(
-		gameData.gameOverFont,
-		al_map_rgb(194, 152, 45),
-		displayWindow->getWidth() / 2 + 69,
-		displayWindow->getHeight() / 2 - 15,
-		ALLEGRO_ALIGN_CENTRE, "%i",
-		scene.player->getScore()
-	);
-
-	DrawGameOverReplay();
-
-	al_flip_display();
-	al_map_rgb(0, 0, 0);
-}
+void FBGame::CloseCurtains() { }
 
 void FBGame::ResetPlay()
 {
