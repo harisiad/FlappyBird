@@ -235,7 +235,6 @@ void FBGame::DestroyGameData()
 void FBGame::DrawGameAspects()
 {
 	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
-	static float SCALE_GODMOD_RATE = .6f;
 
 	al_set_target_bitmap(buffer);
 	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
@@ -264,49 +263,7 @@ void FBGame::DrawGameAspects()
 
 		if (!gameModes.debug)
 		{
-			//Draw GodMode disclaimer
-			if (scene.player->getGodMode())
-			{
-				ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
-					gameData.godModPressed,
-					0,
-					0,
-					al_get_bitmap_width(gameData.godModPressed),
-					al_get_bitmap_height(gameData.godModPressed));
-
-				al_draw_scaled_rotated_bitmap(tmp,
-					0,
-					0,
-					10,
-					displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
-					SCALE_GODMOD_RATE,
-					SCALE_GODMOD_RATE,
-					0.0f,
-					0);
-
-				al_destroy_bitmap(tmp);
-			}
-			else
-			{
-				ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
-					gameData.godMod,
-					0,
-					0,
-					al_get_bitmap_width(gameData.godMod),
-					al_get_bitmap_height(gameData.godMod));
-
-				al_draw_scaled_rotated_bitmap(tmp,
-					0,
-					0,
-					10,
-					displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
-					SCALE_GODMOD_RATE,
-					SCALE_GODMOD_RATE,
-					0.0f,
-					0);
-
-				al_destroy_bitmap(tmp);
-			}
+			DrawGodMode();
 		}
 	}
 	else if (currentStage == Stages::GameOver)
@@ -320,6 +277,54 @@ void FBGame::DrawGameAspects()
 	al_draw_bitmap(buffer, 0, 0, 0);
 
 	al_destroy_bitmap(buffer);
+}
+
+void FBGame::DrawGodMode()
+{
+	static float SCALE_GODMOD_RATE = .6f;
+	//Draw GodMode disclaimer
+	if (scene.player->getGodMode())
+	{
+		ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+			gameData.godModPressed,
+			0,
+			0,
+			al_get_bitmap_width(gameData.godModPressed),
+			al_get_bitmap_height(gameData.godModPressed));
+
+		al_draw_scaled_rotated_bitmap(tmp,
+			0,
+			0,
+			10,
+			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godModPressed) * SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
+			0.0f,
+			0);
+
+		al_destroy_bitmap(tmp);
+	}
+	else
+	{
+		ALLEGRO_BITMAP* tmp = al_create_sub_bitmap(
+			gameData.godMod,
+			0,
+			0,
+			al_get_bitmap_width(gameData.godMod),
+			al_get_bitmap_height(gameData.godMod));
+
+		al_draw_scaled_rotated_bitmap(tmp,
+			0,
+			0,
+			10,
+			displayWindow->getHeight() / 2 - al_get_bitmap_height(gameData.godMod) * SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
+			SCALE_GODMOD_RATE,
+			0.0f,
+			0);
+
+		al_destroy_bitmap(tmp);
+	}
 }
 
 void FBGame::DrawMainGame()

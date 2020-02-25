@@ -81,6 +81,7 @@ class FBGame : public Acts
 		bool GetFullscreenValue(const char* c);
 		
 		void DrawGameAspects();
+		void DrawGodMode();
 		void DrawMainGame();
 		void DrawDebugMode();
 		void DrawCountDownTimer(int countDown);
