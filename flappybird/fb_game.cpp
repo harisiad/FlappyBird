@@ -235,13 +235,14 @@ void FBGame::DestroyGameData()
 void FBGame::DrawGameAspects()
 {
 	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
-
+	
 	al_set_target_bitmap(buffer);
 	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
 
 	scene.bg.draw(); //Draw Background
 
 	scene.player->drawPlayer(); //Draw Flappy
+	
 	if (currentStage == Stages::StartMenu)
 	{
 		scene.player->updateSpriteAnimation();
@@ -272,7 +273,7 @@ void FBGame::DrawGameAspects()
 	}
 
 	scene.groundbk.drawGround();
-
+	
 	al_set_target_bitmap(al_get_backbuffer(gameData.display));
 	al_draw_bitmap(buffer, 0, 0, 0);
 
@@ -536,7 +537,10 @@ void FBGame::ActsPlayLoop()
 
 	al_start_timer(gameData.timer);
 	gameTime = clock();
-	
+	gameData.fpsTimeCounter = al_get_time();
+	double fps = 0;
+	double frames_done = 0;
+
 	scene.player->setHighscore(configData->GetHighScore());
 	
 	while (!gameModes.running)
@@ -673,6 +677,19 @@ void FBGame::ActsPlayLoop()
 
 			al_flip_display();
 			al_map_rgb(0, 0, 0);
+
+			double newTime = al_get_time();
+			if (newTime - gameData.fpsTimeCounter >= 1.0 &&
+				gameModes.debug)
+			{
+				fps = frames_done / (newTime - gameData.fpsTimeCounter);
+
+				frames_done = 0;
+				gameData.fpsTimeCounter = newTime;
+
+				std::cout << "Fps: " << (int) fps << std::endl;
+			}
+			frames_done++;
 		}
 	}
 
