@@ -506,6 +506,8 @@ void FBGame::MainGame()
 					firstPipe->recalculateY();
 
 					isMoved = true;
+					firstPipe = lastPipe = nullptr;
+					delete firstPipe, lastPipe;
 				}
 				else
 				{
@@ -523,6 +525,8 @@ void FBGame::MainGame()
 				pipeList.push_back(firstPipe);
 
 				isMoved = false;
+				firstPipe = nullptr;
+				delete firstPipe;
 			}
 		}
 	}
