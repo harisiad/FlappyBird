@@ -386,6 +386,13 @@ void FBGame::DrawDebugMode()
 	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
 	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
 
+	al_draw_line(0, displayWindow->getHeight() / 5 - 30,
+		displayWindow->getWidth(), displayWindow->getHeight() / 5 - 30,
+		al_map_rgb(255, 0, 0), 1.5);
+	al_draw_line(0, 4 * displayWindow->getHeight() / 5,
+		displayWindow->getWidth(), 4 * displayWindow->getHeight() / 5,
+		al_map_rgb(255, 0, 0), 1.5);
+
 	al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
 }
 
@@ -511,7 +518,50 @@ void FBGame::MainGame()
 				}
 				else
 				{
-					pipe->updatePipes();
+					pipe->update();
+					if (scene.player->getScore() >= 20 &&
+						scene.player->getScore() <= 35)
+					{
+						float topPipeLoc = pipe->getY() - pipe->getBoundFreeY();
+						float bottomPipeLoc = pipe->getY() + pipe->getBoundFreeY();
+
+						if (pipe->getVelY() == 0)
+						{
+							if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
+								topPipeLoc <= displayWindow->getHeight() / 2)
+							{
+								pipe->setVelY(1.0f);
+							}
+							else if (topPipeLoc < displayWindow->getHeight() / 5 - 30)
+							{
+								pipe->setVelY(1.0f);
+							}
+							else if (bottomPipeLoc <= 4 * displayWindow->getHeight() / 5 &&
+								bottomPipeLoc >= displayWindow->getHeight() / 2)
+							{
+								pipe->setVelY(-1.0f);
+							}
+							else if (bottomPipeLoc > 4 * displayWindow->getHeight() / 5)
+							{
+								pipe->setVelY(-1.0f);
+							}
+						}
+
+						if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
+							topPipeLoc <= displayWindow->getHeight() / 5 - 25)
+						{
+							pipe->setVelY(1.0f);
+						}
+						else if (bottomPipeLoc <= 4*displayWindow->getHeight() / 5 &&
+							bottomPipeLoc >= 4*displayWindow->getHeight() / 5 - 5)
+						{
+							pipe->setVelY(-1.0f);
+						}
+					}
+					else
+					{
+						pipe->setVelY(0.0f);
+					}
 				}
 			}
 

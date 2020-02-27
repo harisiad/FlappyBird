@@ -126,6 +126,7 @@ void PipeBk::drawPipes()
 void PipeBk::updatePipes()
 {
 	x += velX;
+	y += velY;
 }
 
 void PipeBk::update()
