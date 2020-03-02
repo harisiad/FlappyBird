@@ -33,8 +33,6 @@ public:
 
 	inline float getPipeDistance() { return pipeDistance; };
 
-	inline void setVelY(float speed) { velY = speed; }
-
 	void setBoundXup(int);
 	int getBoundXup();
 	void setBoundYup(int);
