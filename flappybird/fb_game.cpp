@@ -522,41 +522,7 @@ void FBGame::MainGame()
 					if (scene.player->getScore() >= 20 &&
 						scene.player->getScore() <= 35)
 					{
-						float topPipeLoc = pipe->getY() - pipe->getBoundFreeY();
-						float bottomPipeLoc = pipe->getY() + pipe->getBoundFreeY();
-
-						if (pipe->getVelY() == 0)
-						{
-							if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
-								topPipeLoc <= displayWindow->getHeight() / 2)
-							{
-								pipe->setVelY(1.0f);
-							}
-							else if (topPipeLoc < displayWindow->getHeight() / 5 - 30)
-							{
-								pipe->setVelY(1.0f);
-							}
-							else if (bottomPipeLoc <= 4 * displayWindow->getHeight() / 5 &&
-								bottomPipeLoc >= displayWindow->getHeight() / 2)
-							{
-								pipe->setVelY(-1.0f);
-							}
-							else if (bottomPipeLoc > 4 * displayWindow->getHeight() / 5)
-							{
-								pipe->setVelY(-1.0f);
-							}
-						}
-
-						if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
-							topPipeLoc <= displayWindow->getHeight() / 5 - 25)
-						{
-							pipe->setVelY(1.0f);
-						}
-						else if (bottomPipeLoc <= 4*displayWindow->getHeight() / 5 &&
-							bottomPipeLoc >= 4*displayWindow->getHeight() / 5 - 5)
-						{
-							pipe->setVelY(-1.0f);
-						}
+						level2Difficulty(pipe);
 					}
 					else
 					{
@@ -579,6 +545,45 @@ void FBGame::MainGame()
 				delete firstPipe;
 			}
 		}
+	}
+}
+
+void FBGame::level2Difficulty(PipeBk* pipe)
+{
+	float topPipeLoc = pipe->getY() - pipe->getBoundFreeY();
+	float bottomPipeLoc = pipe->getY() + pipe->getBoundFreeY();
+
+	if (pipe->getVelY() == 0)
+	{
+		if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
+			topPipeLoc <= displayWindow->getHeight() / 2)
+		{
+			pipe->setVelY(1.0f);
+		}
+		else if (topPipeLoc < displayWindow->getHeight() / 5 - 30)
+		{
+			pipe->setVelY(1.0f);
+		}
+		else if (bottomPipeLoc <= 4 * displayWindow->getHeight() / 5 &&
+			bottomPipeLoc >= displayWindow->getHeight() / 2)
+		{
+			pipe->setVelY(-1.0f);
+		}
+		else if (bottomPipeLoc > 4 * displayWindow->getHeight() / 5)
+		{
+			pipe->setVelY(-1.0f);
+		}
+	}
+
+	if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
+		topPipeLoc <= displayWindow->getHeight() / 5 - 25)
+	{
+		pipe->setVelY(1.0f);
+	}
+	else if (bottomPipeLoc <= 4 * displayWindow->getHeight() / 5 &&
+		bottomPipeLoc >= 4 * displayWindow->getHeight() / 5 - 5)
+	{
+		pipe->setVelY(-1.0f);
 	}
 }
 

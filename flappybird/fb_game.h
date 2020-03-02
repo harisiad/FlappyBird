@@ -94,6 +94,8 @@ class FBGame : public Acts
 		void CountDown();
 		void MainGame();
 
+		void level2Difficulty(PipeBk* pipe);
+
 		void ActsPlayLoop();
 		void ActsProgramme();
 		void PauseAct();
