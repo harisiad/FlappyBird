@@ -19,6 +19,7 @@ PipeBk::PipeBk()
 	boundYdown = 0;
 
 	alive = true;
+	scored = false;
 }
 PipeBk::PipeBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 {
@@ -44,9 +45,15 @@ PipeBk::PipeBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 	boundFreeY = 50;
 
 	alive = true;
+	scored = false;
 
 	seed = rand32();
 	initCMWC(&cmwc, seed);
+}
+
+PipeBk::~PipeBk()
+{
+	delete[] image;
 }
 
 void PipeBk::setBoundXup(int x)
@@ -85,12 +92,14 @@ int PipeBk::getBoundYdown()
 
 void PipeBk::startPipes(Background back, int mul)
 {
-	x = win->getWidth() + mul * pipeDistance;
+	x = width + mul + pipeDistance;
 
 	// y = minimum possible location + rand() % maximum interval
 	// y => min - (max interval + min)
 	y = win->getHeight() / 5 + (randCMWC(&cmwc) % (int)(win->getHeight() / 2));
 }
+
+
 
 void PipeBk::recalculateY()
 {
@@ -131,7 +140,7 @@ void PipeBk::updatePipes()
 
 void PipeBk::update()
 {
-	updatePipes();
+	//updatePipes();
 }
 
 void PipeBk::draw()
@@ -143,4 +152,57 @@ void PipeBk::resetPlay()
 {
 	x = 0;
 	y = 0;
+}
+
+Pipe1Level::Pipe1Level(ALLEGRO_BITMAP* img, int w, int h, Window* _win) : 
+	PipeBk(img, w, h, _win), level(LEVEL::L1) {}
+
+void Pipe1Level::update()
+{
+	x += velX;
+}
+
+Pipe2Level::Pipe2Level(ALLEGRO_BITMAP* img, int w, int h, Window* _win) : 
+	PipeBk(img, w, h, _win), level(LEVEL::L2) {}
+
+void Pipe2Level::update()
+{
+	float topPipeLoc = y - getBoundFreeY();
+	float bottomPipeLoc = y + getBoundFreeY();
+
+	if (velY == 0)
+	{
+		if (topPipeLoc >= win->getHeight() / 5 - 30 &&
+			topPipeLoc <= win->getHeight() / 2)
+		{
+			velY = 1.0f;
+		}
+		else if (topPipeLoc < win->getHeight() / 5 - 30)
+		{
+			velY = 1.0f;
+		}
+		else if (bottomPipeLoc <= 4 * win->getHeight() / 5 &&
+			bottomPipeLoc >= win->getHeight() / 2)
+		{
+			velY = -1.0f;
+		}
+		else if (bottomPipeLoc > 4 * win->getHeight() / 5)
+		{
+			velY = -1.0f;
+		}
+	}
+
+	if (topPipeLoc >= win->getHeight() / 5 - 30 &&
+		topPipeLoc <= win->getHeight() / 5 - 25)
+	{
+		velY = 1.0f;
+	}
+	else if (bottomPipeLoc <= 4 * win->getHeight() / 5 &&
+		bottomPipeLoc >= 4 * win->getHeight() / 5 - 5)
+	{
+		velY = -1.0f;
+	}
+
+	x += velX;
+	y += velY;
 }

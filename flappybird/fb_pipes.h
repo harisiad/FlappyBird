@@ -8,9 +8,11 @@
 #include "MWC_Rand.h"
 
 
+enum class LEVEL {L0, L1, L2};
+
 class PipeBk : public GameObject {
 private:
-	float pipeDistance = 250;
+	float pipeDistance = 150;
 
 	int boundXup;
 	int boundYup;
@@ -27,9 +29,12 @@ private:
 	unsigned int seed;
 	cmwc_state cmwc;
 
+	LEVEL level = LEVEL::L0;
+
 public:
 	PipeBk();
 	PipeBk(ALLEGRO_BITMAP*, int, int, Window*);
+	~PipeBk();
 
 	inline float getPipeDistance() { return pipeDistance; };
 
@@ -50,7 +55,7 @@ public:
 
 	void setScored(bool value) { scored = value; };
 	bool getScored() { return scored; };
-
+	
 	void recalculateY();
 
 	void drawPipes();
@@ -61,6 +66,26 @@ public:
 	void draw();
 
 	void resetPlay();
+};
+
+class Pipe1Level : public PipeBk
+{
+private:
+	LEVEL level = LEVEL::L1;
+public:
+	Pipe1Level(ALLEGRO_BITMAP*, int, int, Window*);
+	void update();
+	inline LEVEL getLevel() const { return level; };
+};
+
+class Pipe2Level : public PipeBk
+{
+private:
+	LEVEL level = LEVEL::L2;
+public:
+	Pipe2Level(ALLEGRO_BITMAP*, int, int, Window*);
+	void update();
+	inline LEVEL getLevel() const { return level; };
 };
 
 #endif

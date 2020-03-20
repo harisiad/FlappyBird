@@ -470,7 +470,7 @@ void FBGame::MainGame()
 	{
 		if (!gameModes.pause)
 		{
-			bool isMoved = false;
+			bool isPipeAlive = true;
 			pipeCount = pipeList.size();
 
 			soundManager->playThemeSong();
@@ -479,16 +479,32 @@ void FBGame::MainGame()
 			scene.bg.update();
 			scene.groundbk.update();
 
-			if (pipeCount < 10)
-			{
-				scene.bg_pipes = new PipeBk(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
-				pipeList.push_back(scene.bg_pipes);
-				scene.bg_pipes->startPipes(scene.bg, pipeCount++);
-			}
+			DifficultyStateMachine(isPipeAlive);
 
-			for (PipeBk* pipe : pipeList)
+			if (!isPipeAlive)
 			{
-				if ((scene.player->collidePipes(pipe) && (!scene.player->getGodMode())) || 
+				pipeList.pop_front();
+				
+				isPipeAlive = true;
+			}
+		}
+	}
+}
+
+void FBGame::DifficultyStateMachine(bool& isPipeAlive)
+{
+	int score = scene.player->getScore();
+
+	switch (pipeState)
+	{
+		case PipeState::Update:
+		{
+			GeneratePipes();
+
+			for (auto pipe : pipeList)
+			{
+				if ((scene.player->collidePipes(pipe) && 
+					(!scene.player->getGodMode())) || 
 					scene.player->gravityPull(scene.groundbk.getY()))
 				{
 					soundManager->playCollisionSound();
@@ -506,84 +522,98 @@ void FBGame::MainGame()
 
 				if (pipe->getX() < -pipe->getWidth() * 2)
 				{
-					PipeBk* firstPipe = pipeList.front();
-					PipeBk* lastPipe = pipeList.back();
+					pipe->setAlivePipe(false);
 
-					firstPipe->setX(lastPipe->getX() + firstPipe->getPipeDistance());
-					firstPipe->recalculateY();
-
-					isMoved = true;
-					firstPipe = lastPipe = nullptr;
-					delete firstPipe, lastPipe;
+					isPipeAlive = false;
 				}
 				else
 				{
 					pipe->update();
-					if (scene.player->getScore() >= 20 &&
-						scene.player->getScore() <= 35)
-					{
-						level2Difficulty(pipe);
-					}
-					else
-					{
-						pipe->setVelY(0.0f);
-					}
+				}
+			}
+			break;
+		}
+		case PipeState::LevelFaze :
+		{
+			for (auto pipe : pipeList)
+			{
+				if (pipe->getX() < -pipe->getWidth() * 2)
+				{
+					isPipeAlive = false;
+				}
+				else
+				{
+					pipe->update();
 				}
 			}
 
-			if (isMoved)
+			if (pipeList.empty())
 			{
-				PipeBk* firstPipe = pipeList.front();
-
-				firstPipe->setScored(false);
-
-				pipeList.pop_front();
-				pipeList.push_back(firstPipe);
-
-				isMoved = false;
-				firstPipe = nullptr;
-				delete firstPipe;
+				pipeState = PipeState::Update;
 			}
+			break;
+		}
+		default:
+		{
+			pipeState = PipeState::Update;
+			break;
 		}
 	}
 }
 
-void FBGame::level2Difficulty(PipeBk* pipe)
+void FBGame::GeneratePipes()
 {
-	float topPipeLoc = pipe->getY() - pipe->getBoundFreeY();
-	float bottomPipeLoc = pipe->getY() + pipe->getBoundFreeY();
+	static int ZERO_LEVEL = 0;
+	static int FIRST_LEVEL_PIPECOUNT = 20;
+	static int SECOND_LEVEL_PIPECOUNT = 15;
 
-	if (pipe->getVelY() == 0)
+	if (scene.player->getScore() == ZERO_LEVEL)
 	{
-		if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
-			topPipeLoc <= displayWindow->getHeight() / 2)
+		if (pipeCount < FIRST_LEVEL_PIPECOUNT)
 		{
-			pipe->setVelY(1.0f);
-		}
-		else if (topPipeLoc < displayWindow->getHeight() / 5 - 30)
-		{
-			pipe->setVelY(1.0f);
-		}
-		else if (bottomPipeLoc <= 4 * displayWindow->getHeight() / 5 &&
-			bottomPipeLoc >= displayWindow->getHeight() / 2)
-		{
-			pipe->setVelY(-1.0f);
-		}
-		else if (bottomPipeLoc > 4 * displayWindow->getHeight() / 5)
-		{
-			pipe->setVelY(-1.0f);
+			scene.bg_pipes = new Pipe1Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+			pipeList.push_back(scene.bg_pipes);
+			if (pipeList.size() <= 1)
+			{
+				scene.bg_pipes->startPipes(scene.bg, displayWindow->getWidth());
+			}
+			else
+			{
+				auto it = std::next(pipeList.begin(), pipeCount-1);
+				scene.bg_pipes->startPipes(scene.bg, (*it)->getX());
+			}
 		}
 	}
+	else if (scene.player->getScore() == FIRST_LEVEL_PIPECOUNT)
+	{
+		if (!pipeList.empty())
+		{
+			if (((Pipe1Level*)pipeList.front())->getLevel() == LEVEL::L1)
+			{
+				pipeState = PipeState::LevelFaze;
+				return;
+			}
+		}
 
-	if (topPipeLoc >= displayWindow->getHeight() / 5 - 30 &&
-		topPipeLoc <= displayWindow->getHeight() / 5 - 25)
-	{
-		pipe->setVelY(1.0f);
+		if (pipeCount < SECOND_LEVEL_PIPECOUNT)
+		{
+			scene.bg_pipes = new Pipe2Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+			pipeList.push_back(scene.bg_pipes);
+			if (pipeList.size() <= 1)
+			{
+				scene.bg_pipes->startPipes(scene.bg, displayWindow->getWidth());
+			}
+			else
+			{
+				auto it = std::next(pipeList.begin(), pipeCount - 1);
+				scene.bg_pipes->startPipes(scene.bg, (*it)->getX());
+			}
+		}
 	}
-	else if (bottomPipeLoc <= 4 * displayWindow->getHeight() / 5 &&
-		bottomPipeLoc >= 4 * displayWindow->getHeight() / 5 - 5)
+	else if (scene.player->getScore() == 35 ||
+		scene.player->getScore() == 55)
 	{
-		pipe->setVelY(-1.0f);
+
 	}
 }
 

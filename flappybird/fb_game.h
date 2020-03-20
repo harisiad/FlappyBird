@@ -43,6 +43,7 @@ struct Scene
 	Player* player;
 };
 enum Stages {StartMenu, CountDown, MainGame, GameOver};
+enum PipeState {Update, LevelFaze};
 
 class FBGame : public Acts
 {
@@ -60,6 +61,7 @@ class FBGame : public Acts
 		float secondsPassed;
 
 		int currentStage = Stages::StartMenu;
+		int pipeState = PipeState::Update;
 
 		std::list<PipeBk *> pipeList;
 		std::list<PipeBk *>::iterator pipeI;
@@ -94,7 +96,9 @@ class FBGame : public Acts
 		void CountDown();
 		void MainGame();
 
-		void level2Difficulty(PipeBk* pipe);
+		void DifficultyStateMachine(bool& isMoved);
+
+		void GeneratePipes();
 
 		void ActsPlayLoop();
 		void ActsProgramme();
