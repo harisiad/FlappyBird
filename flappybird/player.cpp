@@ -129,7 +129,7 @@ void Player::resetAnimation()
 	animationRow = 0;
 }
 
-bool Player::collidePipes(PipeBk* pipe)
+bool Player::collidePipes(PipeBk* pipe) const
 {
 	if (x + boundX > pipe->getX() - pipe->getBoundXup() &&
 		y + boundY > pipe->getY() - pipe->getBoundFreeY() - pipe->getBoundYup() &&

@@ -72,7 +72,7 @@ public:
 	void gainHeight();
 	void resetAnimation();
 
-	bool collidePipes(PipeBk*);
+	bool collidePipes(PipeBk*) const;
 	bool collideGround(GroundBk);
 	bool passMark(PipeBk*);
 

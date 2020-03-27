@@ -4,16 +4,13 @@
 #include "fb_globals.h"
 #include "fb_window.h"
 #include "fb_game_object.h"
-#include "fb_background.h"
 #include "MWC_Rand.h"
 
 
-enum class LEVEL {L0, L1, L2};
+enum class LEVEL {L0, L1, L2, L3};
 
 class PipeBk : public GameObject {
 private:
-	float pipeDistance = 150;
-
 	int boundXup;
 	int boundYup;
 	int boundXdown;
@@ -27,16 +24,19 @@ private:
 
 	// MWC Random Number Generator parameters
 	unsigned int seed;
-	cmwc_state cmwc;
 
 	LEVEL level = LEVEL::L0;
+protected:
+	float pipeDistance = 125;
+	
+	cmwc_state cmwc;
 
 public:
 	PipeBk();
 	PipeBk(ALLEGRO_BITMAP*, int, int, Window*);
 	~PipeBk();
 
-	inline float getPipeDistance() { return pipeDistance; };
+	inline float getPipeDistance() const { return pipeDistance; };
 
 	void setBoundXup(int);
 	int getBoundXup();
@@ -47,23 +47,25 @@ public:
 	void setBoundYdown(int);
 	int getBoundYdown();
 
-	int getBoundFreeX() { return boundFreeX; }
-	int getBoundFreeY() { return boundFreeY; }
+	inline void setBoundFreeY(int value) { boundFreeY = value; }
 
-	void setAlivePipe(bool value) { alive = value; }
-	bool getAlivePipe() { return alive; }
+	inline int getBoundFreeX() const { return boundFreeX; }
+	inline int getBoundFreeY() const { return boundFreeY; }
+
+	inline void setAlivePipe(bool value) { alive = value; }
+	inline bool getAlivePipe() const { return alive; }
 
 	void setScored(bool value) { scored = value; };
-	bool getScored() { return scored; };
+	inline bool getScored() const { return scored; };
 	
 	void recalculateY();
 
 	void drawPipes();
 	void updatePipes();
-	void startPipes(Background, int);
+	virtual void startPipes(int, int);
 
 	void update();
-	void draw();
+	virtual void draw();
 
 	void resetPlay();
 };
@@ -84,6 +86,23 @@ private:
 	LEVEL level = LEVEL::L2;
 public:
 	Pipe2Level(ALLEGRO_BITMAP*, int, int, Window*);
+	void update();
+	void setYAxisVel();
+	inline LEVEL getLevel() const { return level; };
+};
+
+class Pipe3Level : public PipeBk
+{
+private:
+	LEVEL level = LEVEL::L3;
+public:
+	Pipe3Level(ALLEGRO_BITMAP*, int, int, Window*);
+	void setYAxisVel();
+	void drawPipes();
+	void startPipes(int, int) override;
+	
+	// Game Object Interface
+	void draw();
 	void update();
 	inline LEVEL getLevel() const { return level; };
 };

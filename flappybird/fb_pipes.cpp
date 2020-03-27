@@ -1,4 +1,7 @@
 #include "fb_pipes.h"
+#include <math.h>
+
+# define M_PIl          3.141592653589793238462643383279502884L
 
 PipeBk::PipeBk()
 {
@@ -20,6 +23,8 @@ PipeBk::PipeBk()
 
 	alive = true;
 	scored = false;
+
+	seed = 0;
 }
 PipeBk::PipeBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 {
@@ -53,7 +58,6 @@ PipeBk::PipeBk(ALLEGRO_BITMAP* img, int w, int h, Window *_win)
 
 PipeBk::~PipeBk()
 {
-	delete[] image;
 }
 
 void PipeBk::setBoundXup(int x)
@@ -90,9 +94,9 @@ int PipeBk::getBoundYdown()
 	return boundYdown;
 }
 
-void PipeBk::startPipes(Background back, int mul)
+void PipeBk::startPipes(int size, int lastPipePosition)
 {
-	x = width + mul + pipeDistance;
+	x = width + lastPipePosition + pipeDistance;
 
 	// y = minimum possible location + rand() % maximum interval
 	// y => min - (max interval + min)
@@ -165,7 +169,7 @@ void Pipe1Level::update()
 Pipe2Level::Pipe2Level(ALLEGRO_BITMAP* img, int w, int h, Window* _win) : 
 	PipeBk(img, w, h, _win), level(LEVEL::L2) {}
 
-void Pipe2Level::update()
+void Pipe2Level::setYAxisVel()
 {
 	float topPipeLoc = y - getBoundFreeY();
 	float bottomPipeLoc = y + getBoundFreeY();
@@ -202,7 +206,111 @@ void Pipe2Level::update()
 	{
 		velY = -1.0f;
 	}
+}
+
+void Pipe2Level::update()
+{
+	setYAxisVel();
 
 	x += velX;
 	y += velY;
+}
+
+
+Pipe3Level::Pipe3Level(ALLEGRO_BITMAP* img, int w, int h, Window* _win)
+	: PipeBk(img, w, h, _win) 
+{
+	setBoundFreeY(65);	// For bigger space between pipes
+}
+
+void Pipe3Level::setYAxisVel()
+{
+	float topPipeLoc = y - getBoundFreeY();
+	float bottomPipeLoc = y + getBoundFreeY();
+
+	if (velY == 0)
+	{
+		if (topPipeLoc >= win->getHeight() / 5 - 30 &&
+			topPipeLoc <= win->getHeight() / 2)
+		{
+			velY = 1.0f;
+		}
+		else if (topPipeLoc < win->getHeight() / 5 - 30)
+		{
+			velY = 1.0f;
+		}
+		else if (bottomPipeLoc <= 4 * win->getHeight() / 5 &&
+			bottomPipeLoc >= win->getHeight() / 2)
+		{
+			velY = -1.0f;
+		}
+		else if (bottomPipeLoc > 4 * win->getHeight() / 5)
+		{
+			velY = -1.0f;
+		}
+	}
+
+	if (topPipeLoc >= win->getHeight() / 5 - 30 &&
+		topPipeLoc <= win->getHeight() / 5 - 25)
+	{
+		velY = 1.0f;
+	}
+	else if (bottomPipeLoc <= 4 * win->getHeight() / 5 &&
+		bottomPipeLoc >= 4 * win->getHeight() / 5 - 5)
+	{
+		velY = -1.0f;
+	}
+}
+
+void Pipe3Level::update()
+{
+	setYAxisVel();
+	
+	x += velX;
+	//y += velY;
+}
+
+void Pipe3Level::drawPipes()
+{
+	static int ALLEGRO_NO_FLIP = 0;
+
+	al_draw_scaled_bitmap(image,
+		0, 0,
+		width, height,
+		x - width / 2, y - getBoundFreeY() - height,
+		width, height,
+		ALLEGRO_NO_FLIP);
+
+	al_draw_scaled_bitmap(image,
+		0, 0,
+		width, height,
+		x - width / 2, y + getBoundFreeY(),
+		width, height,
+		ALLEGRO_FLIP_VERTICAL);
+
+	if (x < 0 - width - 5)
+	{
+		setAlivePipe(false);
+	}
+}
+
+void Pipe3Level::draw()
+{
+	drawPipes();
+}
+
+void Pipe3Level::startPipes(int size, int lastPipePosition)
+{
+	if (size % 6 == 0)
+	{
+		x = width + lastPipePosition + pipeDistance;
+	}
+	else
+	{
+		x = width + lastPipePosition;
+	}
+	
+	// y = minimum possible location + rand() % maximum interval
+	// y => min - (max interval + min)
+	y = win->getHeight() / 2 + 32*cos((lastPipePosition * win->getHeight() / 5) * M_PIl / 180);
 }

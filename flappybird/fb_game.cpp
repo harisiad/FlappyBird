@@ -563,31 +563,34 @@ void FBGame::DifficultyStateMachine(bool& isPipeAlive)
 
 void FBGame::GeneratePipes()
 {
-	static int ZERO_LEVEL = 0;
-	static int FIRST_LEVEL_PIPECOUNT = 20;
-	static int SECOND_LEVEL_PIPECOUNT = 15;
+	int firstPipeStartingPosition = displayWindow->getWidth();
 
-	if (scene.player->getScore() == ZERO_LEVEL)
+	if (scene.player->getScore() == 0)
 	{
+		static int FIRST_LEVEL_PIPECOUNT = 20;
+
 		if (pipeCount < FIRST_LEVEL_PIPECOUNT)
 		{
 			scene.bg_pipes = new Pipe1Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
 			pipeList.push_back(scene.bg_pipes);
 			if (pipeList.size() <= 1)
 			{
-				scene.bg_pipes->startPipes(scene.bg, displayWindow->getWidth());
+				scene.bg_pipes->startPipes(pipeList.size(), firstPipeStartingPosition);
 			}
 			else
 			{
-				auto it = std::next(pipeList.begin(), pipeCount-1);
-				scene.bg_pipes->startPipes(scene.bg, (*it)->getX());
+				auto it = std::next(pipeList.begin(), pipeCount - 1);
+				scene.bg_pipes->startPipes(pipeList.size(), (*it)->getX());
 			}
 		}
 	}
-	else if (scene.player->getScore() == FIRST_LEVEL_PIPECOUNT)
+	else if (scene.player->getScore() == 20)
 	{
+		static int SECOND_LEVEL_PIPECOUNT = 15;
+
 		if (!pipeList.empty())
 		{
+			/*if (!dynamic_cast<Pipe2Level*>(pipeList.front()))*/
 			if (((Pipe1Level*)pipeList.front())->getLevel() == LEVEL::L1)
 			{
 				pipeState = PipeState::LevelFaze;
@@ -601,17 +604,47 @@ void FBGame::GeneratePipes()
 			pipeList.push_back(scene.bg_pipes);
 			if (pipeList.size() <= 1)
 			{
-				scene.bg_pipes->startPipes(scene.bg, displayWindow->getWidth());
+				scene.bg_pipes->startPipes(pipeList.size(), firstPipeStartingPosition);
 			}
 			else
 			{
 				auto it = std::next(pipeList.begin(), pipeCount - 1);
-				scene.bg_pipes->startPipes(scene.bg, (*it)->getX());
+				scene.bg_pipes->startPipes(pipeList.size(), (*it)->getX());
 			}
 		}
 	}
-	else if (scene.player->getScore() == 35 ||
-		scene.player->getScore() == 55)
+	else if (scene.player->getScore() == 35)
+	{
+		static int THIRD_LEVEL_PIPECOUNT = 40;
+
+		if (!pipeList.empty())
+		{
+			/*if (!dynamic_cast<Pipe2Level*>(pipeList.front()))*/
+			if (((Pipe2Level*)pipeList.front())->getLevel() == LEVEL::L2)
+			{
+				pipeState = PipeState::LevelFaze;
+				return;
+			}
+		}
+
+		if (pipeCount < THIRD_LEVEL_PIPECOUNT)
+		{
+			scene.bg_pipes = new Pipe3Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+
+			pipeList.push_back(scene.bg_pipes);
+
+			if (pipeList.size() <= 1)
+			{
+				scene.bg_pipes->startPipes(pipeList.size(), firstPipeStartingPosition);
+			}
+			else
+			{
+				auto it = std::next(pipeList.begin(), pipeCount - 1);
+				scene.bg_pipes->startPipes(pipeList.size(), (*it)->getX());
+			}
+		}
+	}
+	else if (scene.player->getScore() == 75)
 	{
 
 	}
