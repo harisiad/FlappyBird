@@ -590,8 +590,7 @@ void FBGame::GeneratePipes()
 
 		if (!pipeList.empty())
 		{
-			/*if (!dynamic_cast<Pipe2Level*>(pipeList.front()))*/
-			if (((Pipe1Level*)pipeList.front())->getLevel() == LEVEL::L1)
+			if (!dynamic_cast<Pipe2Level*>(pipeList.front()))
 			{
 				pipeState = PipeState::LevelFaze;
 				return;
@@ -619,8 +618,7 @@ void FBGame::GeneratePipes()
 
 		if (!pipeList.empty())
 		{
-			/*if (!dynamic_cast<Pipe2Level*>(pipeList.front()))*/
-			if (((Pipe2Level*)pipeList.front())->getLevel() == LEVEL::L2)
+			if (!dynamic_cast<Pipe3Level*>(pipeList.front()))
 			{
 				pipeState = PipeState::LevelFaze;
 				return;
