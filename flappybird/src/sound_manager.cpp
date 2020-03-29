@@ -114,6 +114,7 @@ void SoundManager::playThemeSong()
 	al_set_sample_instance_playmode(theme_song, ALLEGRO_PLAYMODE_LOOP);
 	al_set_sample_instance_gain(theme_song, 0.7);
 	al_set_sample_instance_speed(theme_song, 1.0);
+	al_set_sample_instance_gain(theme_song, 0.3);
 	if (!al_get_sample_instance_playing(theme_song))
 	{
 		al_play_sample_instance(theme_song);
@@ -136,15 +137,18 @@ void SoundManager::stopThemeSong()
 
 void SoundManager::playFlapSound()
 {
+	al_set_sample_instance_gain(flap_sound, 0.3);
 	al_play_sample_instance(flap_sound);
 }
 
 void SoundManager::playCollisionSound()
 {
+	al_set_sample_instance_gain(collision_sound, 0.3);
 	al_play_sample_instance(collision_sound);
 }
 
 void SoundManager::playSuccessSound()
 {
+	al_set_sample_instance_gain(success_sound, 0.3);
 	al_play_sample_instance(success_sound);
 }

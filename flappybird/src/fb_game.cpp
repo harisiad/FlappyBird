@@ -68,70 +68,70 @@ void FBGame::InitializeGameData()
 
 	InstallAddons();
 
-	gameData.background = al_load_bitmap("bkflappy.png");
+	gameData.background = al_load_bitmap("resources/bkflappy.png");
 	if (!gameData.background)
 	{
 		fprintf(stderr, "failed to load background bitmap!\n");
 		gameData.code = ERR_BACKGROUND_LD;
 	}
 
-	gameData.ground = al_load_bitmap("ground.png");
+	gameData.ground = al_load_bitmap("resources/ground.png");
 	if (!gameData.ground)
 	{
 		fprintf(stderr, "failed to load ground bitmap!\n");
 		gameData.code = ERR_GROUND_LD;
 	}
 
-	gameData.pipes = al_load_bitmap("pipes.png");
+	gameData.pipes = al_load_bitmap("resources/pipes.png");
 	if (!gameData.pipes)
 	{
 		fprintf(stderr, "failed to load pipe bitmap!\n");
 		gameData.code = ERR_PIPES_LD;
 	}
 
-	gameData.playerBmp = al_load_bitmap("bird.png");
+	gameData.playerBmp = al_load_bitmap("resources/bird.png");
 	if (!gameData.playerBmp)
 	{
 		fprintf(stderr, "failed to load flappy bird stripe!\n");
 		gameData.code = ERR_PLAYERBMP_LD;
 	}
 
-	gameData.godMod = al_load_bitmap("godMod.png");
+	gameData.godMod = al_load_bitmap("resources/godMod.png");
 	if (!gameData.godMod)
 	{
 		fprintf(stderr, "failed to load god mod image!\n");
 		gameData.code = ERR_PLAYERBMP_LD;
 	}
 
-	gameData.godModPressed = al_load_bitmap("godModPressed.png");
+	gameData.godModPressed = al_load_bitmap("resources/godModPressed.png");
 	if (!gameData.godModPressed)
 	{
 		fprintf(stderr, "failed to load god mod pressed image!\n");
 		gameData.code = ERR_PLAYERBMP_LD;
 	}
 
-	gameData.gameOverScreen = al_load_bitmap("gameover.png");				//Game Over Bitmap Load
+	gameData.gameOverScreen = al_load_bitmap("resources/gameover.png");				//Game Over Bitmap Load
 	if (!gameData.gameOverScreen)
 	{
 		fprintf(stderr, "failed to load gameover bitmap!\n");
 		gameData.code = ERR_GAMEOVERSCREEN_LD;
 	}
 	
-	gameData.font = al_load_ttf_font("8bit.ttf", 18, 0);
+	gameData.font = al_load_ttf_font("resources/8bit.ttf", 18, 0);
 	if (!gameData.font)
 	{
 		fprintf(stderr, "failed to load font!\n");
 		gameData.code = ERR_FONT_LD;
 	}
 
-	gameData.debugFont = al_load_ttf_font("8bit.ttf", 12, 0);
+	gameData.debugFont = al_load_ttf_font("resources/8bit.ttf", 12, 0);
 	if (!gameData.debugFont)
 	{
 		fprintf(stderr, "failed to load font!\n");
 		gameData.code = ERR_FONT_LD;
 	}
 
-	gameData.gameOverFont = al_load_ttf_font("8bit.ttf", 35, 0);
+	gameData.gameOverFont = al_load_ttf_font("resources/8bit.ttf", 35, 0);
 	if (!gameData.font)
 	{
 		fprintf(stderr, "failed to load game over font\n");
@@ -192,10 +192,10 @@ void FBGame::InstallSound()
 		std::cout << "Failed to reserve audio samples!" << std::endl;
 	}
 	//---------Sample Loading-----------//
-	themedata = al_load_sample("theme_song.ogg");
-	flapdata = al_load_sample("flap.wav");
-	hitdata = al_load_sample("hit.ogg");
-	pointdata = al_load_sample("success.ogg");
+	themedata = al_load_sample("resources/theme_song.ogg");
+	flapdata = al_load_sample("resources/flap.wav");
+	hitdata = al_load_sample("resources/hit.ogg");
+	pointdata = al_load_sample("resources/success.ogg");
 	//---------Instances Creation----------//
 	themesong = al_create_sample_instance(NULL);
 	flapSound = al_create_sample_instance(NULL);
@@ -280,6 +280,7 @@ void FBGame::DrawGameAspects()
 	al_destroy_bitmap(buffer);
 }
 
+#ifdef __DEBUG_MODE__
 void FBGame::DrawGodMode()
 {
 	static float SCALE_GODMOD_RATE = .6f;
@@ -326,25 +327,6 @@ void FBGame::DrawGodMode()
 
 		al_destroy_bitmap(tmp);
 	}
-}
-
-void FBGame::DrawMainGame()
-{
-	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
-	{
-		(*pipeI)->draw();
-		/*Bound Boxes of Pipes and Space in between*/
-		if (gameModes.debug)
-		{
-			DrawDebugMode();
-		}
-	}
-	//Draw Score
-	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() / 2, 20, ALLEGRO_ALIGN_CENTRE, "%i", scene.player->getScore());
-	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() - 20, 20, ALLEGRO_ALIGN_RIGHT, "High Score: %i", scene.player->getHighscore());
-
-	//Draws Time
-	TellTime();
 }
 
 void FBGame::DrawDebugMode()
@@ -394,6 +376,30 @@ void FBGame::DrawDebugMode()
 		al_map_rgb(255, 0, 0), 1.5);
 
 	al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
+}
+
+#else
+void FBGame::DrawGodMode() {}
+void FBGame::DrawDebugMode() {}
+#endif
+
+void FBGame::DrawMainGame()
+{
+	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
+	{
+		(*pipeI)->draw();
+		/*Bound Boxes of Pipes and Space in between*/
+		if (gameModes.debug)
+		{
+			DrawDebugMode();
+		}
+	}
+	//Draw Score
+	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() / 2, 20, ALLEGRO_ALIGN_CENTRE, "%i", scene.player->getScore());
+	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() - 20, 20, ALLEGRO_ALIGN_RIGHT, "High Score: %i", scene.player->getHighscore());
+
+	//Draws Time
+	TellTime();
 }
 
 /*Draws Time*/
@@ -1037,6 +1043,7 @@ void FBGame::PauseAct()
 	}
 }
 
+#ifdef __DEBUG_MODE__
 void FBGame::CheatTheGame()
 {
 	if (scene.player->getGodMode())
@@ -1060,6 +1067,11 @@ void FBGame::DebugAct()
 		gameModes.debug = true;
 	}
 }
+#else
+void FBGame::CheatTheGame() {}
+void FBGame::DebugAct() {}
+#endif
+
 
 void FBGame::OpenCurtains()
 {	
