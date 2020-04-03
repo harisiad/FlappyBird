@@ -9,6 +9,8 @@
 #include "player.h"
 #include "fb_pipes.h"
 
+#include <vector>
+
 struct GameData
 {
 	ALLEGRO_CONFIG *config = (ALLEGRO_CONFIG*)0;							//CONFIGURATION ALLEGRO VAR
@@ -22,6 +24,7 @@ struct GameData
 	ALLEGRO_BITMAP *gameOverScreen = (ALLEGRO_BITMAP*)0;					//ALLEGRO BITMAP GAMEOVER DISPLAY
 	ALLEGRO_BITMAP *godMod = (ALLEGRO_BITMAP*)0;							//ALLEGRO BITMAP REPLAY BUTTON
 	ALLEGRO_BITMAP* godModPressed = (ALLEGRO_BITMAP*)0;
+	ALLEGRO_BITMAP* buffer = (ALLEGRO_BITMAP*)0;
 	ALLEGRO_FONT *font = (ALLEGRO_FONT*)0;									//ALLEGRO FONT FOR SCORE HIGHSCORE
 	ALLEGRO_FONT *debugFont = (ALLEGRO_FONT*)0;
 	ALLEGRO_FONT *gameOverFont = (ALLEGRO_FONT*)0;							//ALLEGRO GAMEOVER SCORE DISPLAY
@@ -63,7 +66,8 @@ class FBGame : public Acts
 		int currentStage = Stages::StartMenu;
 		int pipeState = PipeState::Update;
 
-		std::list<PipeBk *> pipeList;
+		//std::list<PipeBk *> pipeList;
+		std::vector<PipeBk*> pipeList;
 		std::list<PipeBk *>::iterator pipeI;
 
 	public:
@@ -85,7 +89,7 @@ class FBGame : public Acts
 		void DrawGameAspects();
 		void DrawGodMode();
 		void DrawMainGame();
-		void DrawDebugMode();
+		void DrawDebugMode(PipeBk&);
 		void DrawCountDownTimer(int countDown);
 		void DrawStartMenu();
 		void DrawExitGame();

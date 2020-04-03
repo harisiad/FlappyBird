@@ -8,11 +8,12 @@ FBGame::FBGame() :
 
 FBGame::~FBGame()
 {
-	for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
+	//for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
+	/*for (auto& pipe : pipeList)
 	{
 		delete (*pipeI);
 		pipeI = pipeList.erase(pipeI);
-	}
+	}*/
 
 	DestroyGameData();
 }
@@ -137,6 +138,8 @@ void FBGame::InitializeGameData()
 		fprintf(stderr, "failed to load game over font\n");
 		gameData.code = ERR_FONT_LD;
 	}
+
+	gameData.buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
 }
 
 void FBGame::InstallAddons()
@@ -226,6 +229,7 @@ void FBGame::DestroyGameData()
 	al_destroy_bitmap(gameData.background);
 	al_destroy_bitmap(gameData.ground);
 	al_destroy_bitmap(gameData.gameOverScreen);
+	al_destroy_bitmap(gameData.buffer);
 	al_destroy_timer(gameData.timer);
 	al_destroy_display(gameData.display);
 	al_destroy_event_queue(gameData.event_queue);
@@ -234,10 +238,7 @@ void FBGame::DestroyGameData()
 
 void FBGame::DrawGameAspects()
 {
-	ALLEGRO_BITMAP* buffer = al_create_bitmap(displayWindow->getWidth(), displayWindow->getHeight());
 	
-	al_set_target_bitmap(buffer);
-	al_clear_to_color(al_map_rgba(0, 0, 0, 1));
 
 	scene.bg.draw(); //Draw Background
 
@@ -274,10 +275,7 @@ void FBGame::DrawGameAspects()
 
 	scene.groundbk.drawGround();
 	
-	al_set_target_bitmap(al_get_backbuffer(gameData.display));
-	al_draw_bitmap(buffer, 0, 0, 0);
-
-	al_destroy_bitmap(buffer);
+	
 }
 
 #ifdef __DEBUG_MODE__
@@ -329,30 +327,30 @@ void FBGame::DrawGodMode()
 	}
 }
 
-void FBGame::DrawDebugMode()
+void FBGame::DrawDebugMode(PipeBk& pipe)
 {
-	al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXup(),
-		(*pipeI)->getY() - (*pipeI)->getBoundFreeY() - (*pipeI)->getBoundYup(),
-		(*pipeI)->getX() + (*pipeI)->getBoundXup(),
-		(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
+	al_draw_filled_rectangle(pipe.getX() - pipe.getBoundXup(),
+		pipe.getY() - pipe.getBoundFreeY() - pipe.getBoundYup(),
+		pipe.getX() + pipe.getBoundXup(),
+		pipe.getY() - pipe.getBoundFreeY(),
 		al_map_rgb(255, 0, 0));
 
-	al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundXdown(),
-		(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
-		(*pipeI)->getX() + (*pipeI)->getBoundXdown(),
-		(*pipeI)->getY() + (*pipeI)->getBoundFreeY() + 2 * (*pipeI)->getBoundYdown(),
+	al_draw_filled_rectangle(pipe.getX() - pipe.getBoundXdown(),
+		pipe.getY() + pipe.getBoundFreeY(),
+		pipe.getX() + pipe.getBoundXdown(),
+		pipe.getY() + pipe.getBoundFreeY() + 2 * pipe.getBoundYdown(),
 		al_map_rgb(0, 0, 255));
 
-	al_draw_filled_rectangle((*pipeI)->getX() - (*pipeI)->getBoundFreeX(),
-		(*pipeI)->getY() - (*pipeI)->getBoundFreeY(),
-		(*pipeI)->getX() + (*pipeI)->getBoundFreeX(),
-		(*pipeI)->getY() + (*pipeI)->getBoundFreeY(),
+	al_draw_filled_rectangle(pipe.getX() - pipe.getBoundFreeX(),
+		pipe.getY() - pipe.getBoundFreeY(),
+		pipe.getX() + pipe.getBoundFreeX(),
+		pipe.getY() + pipe.getBoundFreeY(),
 		al_map_rgb(255, 0, 255));
 
-	al_draw_filled_rectangle((*pipeI)->getX() - 5,
-		(*pipeI)->getY() - 5,
-		(*pipeI)->getX() + 5,
-		(*pipeI)->getY() + 5,
+	al_draw_filled_rectangle(pipe.getX() - 5,
+		pipe.getY() - 5,
+		pipe.getX() + 5,
+		pipe.getY() + 5,
 		al_map_rgb(255, 0, 0));
 
 	al_draw_filled_rectangle(scene.player->getX() - scene.player->getWidth() / 2,
@@ -375,23 +373,25 @@ void FBGame::DrawDebugMode()
 		displayWindow->getWidth(), 4 * displayWindow->getHeight() / 5,
 		al_map_rgb(255, 0, 0), 1.5);
 
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), (*pipeI)->getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", (*pipeI)->getX());
+	al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), pipe.getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", pipe.getX());
 }
 
 #else
 void FBGame::DrawGodMode() {}
-void FBGame::DrawDebugMode() {}
+void FBGame::DrawDebugMode(PipeBk&) {}
 #endif
 
 void FBGame::DrawMainGame()
 {
-	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
+	//for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
+	for (auto pipe : pipeList)
 	{
-		(*pipeI)->draw();
+		//(*pipeI)->draw();
+		pipe->draw();
 		/*Bound Boxes of Pipes and Space in between*/
 		if (gameModes.debug)
 		{
-			DrawDebugMode();
+			DrawDebugMode(*pipe);
 		}
 	}
 	//Draw Score
@@ -489,8 +489,8 @@ void FBGame::MainGame()
 
 			if (!isPipeAlive)
 			{
-				pipeList.pop_front();
-				
+				pipeList.erase(pipeList.begin());
+
 				isPipeAlive = true;
 			}
 		}
@@ -576,7 +576,7 @@ void FBGame::GeneratePipes()
 		static int FIRST_LEVEL_PIPECOUNT = 20;
 
 		if (pipeCount < FIRST_LEVEL_PIPECOUNT)
-		{
+		{	// Too big for stack
 			scene.bg_pipes = new Pipe1Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
 			pipeList.push_back(scene.bg_pipes);
 			if (pipeList.size() <= 1)
@@ -585,8 +585,7 @@ void FBGame::GeneratePipes()
 			}
 			else
 			{
-				auto it = std::next(pipeList.begin(), pipeCount - 1);
-				scene.bg_pipes->startPipes(pipeList.size(), (*it)->getX());
+				scene.bg_pipes->startPipes(pipeList.size(), pipeList[pipeCount -1]->getX());
 			}
 		}
 	}
@@ -613,8 +612,7 @@ void FBGame::GeneratePipes()
 			}
 			else
 			{
-				auto it = std::next(pipeList.begin(), pipeCount - 1);
-				scene.bg_pipes->startPipes(pipeList.size(), (*it)->getX());
+				scene.bg_pipes->startPipes(pipeList.size(), pipeList[pipeCount - 1]->getX());
 			}
 		}
 	}
@@ -643,8 +641,7 @@ void FBGame::GeneratePipes()
 			}
 			else
 			{
-				auto it = std::next(pipeList.begin(), pipeCount - 1);
-				scene.bg_pipes->startPipes(pipeList.size(), (*it)->getX());
+				scene.bg_pipes->startPipes(pipeList.size(), pipeList[pipeCount - 1]->getX());
 			}
 		}
 	}
@@ -790,6 +787,9 @@ void FBGame::ActsPlayLoop()
 
 		if (gameModes.redraw && (!gameModes.pause))
 		{
+			al_set_target_bitmap(gameData.buffer);
+			al_clear_to_color(al_map_rgba(0, 0, 0, 1));
+
 			gameModes.redraw = false;
 
 			//Draws Every Element of the Game
@@ -801,8 +801,13 @@ void FBGame::ActsPlayLoop()
 				currentStage = Stages::GameOver;
 			}
 
-			al_flip_display();
+			al_set_target_bitmap(al_get_backbuffer(gameData.display));
+			al_draw_bitmap(gameData.buffer, 0, 0, 0);
+
+			//al_destroy_bitmap(buffer);
+
 			al_map_rgb(0, 0, 0);
+			al_flip_display();
 
 			double newTime = al_get_time();
 			if (newTime - gameData.fpsTimeCounter >= 1.0 &&
@@ -830,13 +835,13 @@ void FBGame::DrawGameOverReplay()
 {
 	ALLEGRO_MOUSE_STATE mouseState;
 
-	for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
+	for (auto pipe : pipeList)
 	{
-		(*pipeI)->draw();
+		pipe->draw();
 		/*Bound Boxes of Pipes and Space in between*/
 		if (gameModes.debug)
 		{
-			DrawDebugMode();
+			DrawDebugMode(*pipe);
 		}
 	}
 
@@ -1072,7 +1077,6 @@ void FBGame::CheatTheGame() {}
 void FBGame::DebugAct() {}
 #endif
 
-
 void FBGame::OpenCurtains()
 {	
 	DrawStartMenu();
@@ -1088,12 +1092,13 @@ void FBGame::ResetPlay()
 
 	scene.player->resetPlayer();
 
-	for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
+	for (auto pipe : pipeList)
 	{
-		delete (*pipeI);
-		pipeI = pipeList.erase(pipeI);
+		delete pipe;
 	}
-	
+
+	pipeList.clear();
+
 	scene.bg_pipes->resetPlay();
 
 	al_clear_to_color(al_map_rgba_f(0.0, 0.0, 0.0, 0.2));
