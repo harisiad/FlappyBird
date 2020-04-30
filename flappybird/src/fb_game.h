@@ -37,6 +37,7 @@ struct GameModes
 	bool redraw;
 	bool pause;
 	bool debug;
+	bool preBossLevel;
 };
 struct Scene
 {

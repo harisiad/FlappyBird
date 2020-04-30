@@ -3,18 +3,11 @@
 FBGame::FBGame() :
 	secondsPassed(3.0f)
 {
-
+	gameModes.preBossLevel = false;
 }
 
 FBGame::~FBGame()
 {
-	//for (pipeI = pipeList.begin(); pipeI != pipeList.end();)
-	/*for (auto& pipe : pipeList)
-	{
-		delete (*pipeI);
-		pipeI = pipeList.erase(pipeI);
-	}*/
-
 	DestroyGameData();
 }
 
@@ -42,7 +35,8 @@ void FBGame::InitializeGameData()
 		std::atoi(al_get_config_value(gameData.config, NULL, "HEIGHT")),
 		GetFullscreenValue(al_get_config_value(gameData.config, NULL, "FULLSCREEN")),
 		std::stof(al_get_config_value(gameData.config, "GameSettings", "DIFFICULT")),
-		std::atoi(al_get_config_value(gameData.config, "GameSettings", "HIGHSCORE")));
+		std::atoi(al_get_config_value(gameData.config, "GameSettings", "HIGHSCORE"))
+	);
 
 	InitializeWindow();
 
@@ -359,12 +353,59 @@ void FBGame::DrawDebugMode(PipeBk& pipe)
 		scene.player->getY() + scene.player->getBoundY(),
 		al_map_rgb(255, 0, 0));
 
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) - 20, ALLEGRO_ALIGN_LEFT, "Player");
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, SCREEN_H / 4, ALLEGRO_ALIGN_LEFT, "X: %.3f", scene.player->getX());
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 20, ALLEGRO_ALIGN_LEFT, "Y: %.3f", scene.player->getY());
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 40, ALLEGRO_ALIGN_LEFT, "Bound X: %d", scene.player->getBoundX());
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 60, ALLEGRO_ALIGN_LEFT, "Bound Y: %d", scene.player->getBoundY());
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 0, 0), 0, (SCREEN_H / 4) + 80, ALLEGRO_ALIGN_LEFT, "Velocity Y: %.8f", scene.player->getVelY());
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 0, 0), 
+		0, 
+		(SCREEN_H / 4) - 20, 
+		ALLEGRO_ALIGN_LEFT, 
+		"Player"
+	);
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 0, 0), 
+		0, 
+		SCREEN_H / 4, 
+		ALLEGRO_ALIGN_LEFT, 
+		"X: %.3f", 
+		scene.player->getX()
+	);
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 0, 0), 
+		0, 
+		(SCREEN_H / 4) + 20, 
+		ALLEGRO_ALIGN_LEFT, 
+		"Y: %.3f", 
+		scene.player->getY()
+	);
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 0, 0), 
+		0, 
+		(SCREEN_H / 4) + 40, 
+		ALLEGRO_ALIGN_LEFT, 
+		"Bound X: %d", 
+		scene.player->getBoundX()
+	);
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 0, 0), 
+		0, 
+		(SCREEN_H / 4) + 60, 
+		ALLEGRO_ALIGN_LEFT, 
+		"Bound Y: %d", 
+		scene.player->getBoundY()
+	);
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 0, 0), 
+		0, 
+		(SCREEN_H / 4) + 80, 
+		ALLEGRO_ALIGN_LEFT, 
+		"Velocity Y: %.8f", 
+		scene.player->getVelY()
+	);
 
 	al_draw_line(0, displayWindow->getHeight() / 5 - 30,
 		displayWindow->getWidth(), displayWindow->getHeight() / 5 - 30,
@@ -373,7 +414,15 @@ void FBGame::DrawDebugMode(PipeBk& pipe)
 		displayWindow->getWidth(), 4 * displayWindow->getHeight() / 5,
 		al_map_rgb(255, 0, 0), 1.5);
 
-	al_draw_textf(gameData.debugFont, al_map_rgb(255, 125, 0), pipe.getX(), 30, ALLEGRO_ALIGN_CENTER, "%.3f", pipe.getX());
+	al_draw_textf(
+		gameData.debugFont, 
+		al_map_rgb(255, 125, 0), 
+		pipe.getX(), 
+		30, 
+		ALLEGRO_ALIGN_CENTER, 
+		"%.3f", 
+		pipe.getX()
+	);
 }
 
 #else
@@ -383,10 +432,8 @@ void FBGame::DrawDebugMode(PipeBk&) {}
 
 void FBGame::DrawMainGame()
 {
-	//for (pipeI = pipeList.begin(); pipeI != pipeList.end(); ++pipeI)
 	for (auto pipe : pipeList)
 	{
-		//(*pipeI)->draw();
 		pipe->draw();
 		/*Bound Boxes of Pipes and Space in between*/
 		if (gameModes.debug)
@@ -395,8 +442,24 @@ void FBGame::DrawMainGame()
 		}
 	}
 	//Draw Score
-	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() / 2, 20, ALLEGRO_ALIGN_CENTRE, "%i", scene.player->getScore());
-	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), displayWindow->getWidth() - 20, 20, ALLEGRO_ALIGN_RIGHT, "High Score: %i", scene.player->getHighscore());
+	al_draw_textf(
+		gameData.font, 
+		al_map_rgb(255, 255, 255), 
+		displayWindow->getWidth() / 2, 
+		20, 
+		ALLEGRO_ALIGN_CENTRE, 
+		"%i", 
+		scene.player->getScore()
+	);
+	al_draw_textf(
+		gameData.font, 
+		al_map_rgb(255, 255, 255), 
+		displayWindow->getWidth() - 20, 
+		20, 
+		ALLEGRO_ALIGN_RIGHT, 
+		"High Score: %i", 
+		scene.player->getHighscore()
+	);
 
 	//Draws Time
 	TellTime();
@@ -411,7 +474,16 @@ void FBGame::TellTime()
 	{// 60 secs go back to count 0
 		sec = sec % 60;
 	}
-	al_draw_textf(gameData.font, al_map_rgb(255, 255, 255), 10, 20, ALLEGRO_ALIGN_LEFT, "Time: %.2i:%.2i", minutes, (int)sec);
+	al_draw_textf(
+		gameData.font, 
+		al_map_rgb(255, 255, 255), 
+		10, 
+		20, 
+		ALLEGRO_ALIGN_LEFT, 
+		"Time: %.2i:%.2i", 
+		minutes, 
+		(int)sec
+	);
 }
 
 bool FBGame::GetFullscreenValue(const char* c)
@@ -577,7 +649,12 @@ void FBGame::GeneratePipes()
 
 		if (pipeCount < FIRST_LEVEL_PIPECOUNT)
 		{	// Too big for stack
-			scene.bg_pipes = new Pipe1Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+			scene.bg_pipes = new Pipe1Level(
+				gameData.pipes, 
+				al_get_bitmap_width(gameData.pipes), 
+				al_get_bitmap_height(gameData.pipes), 
+				displayWindow
+			);
 			pipeList.push_back(scene.bg_pipes);
 			if (pipeList.size() <= 1)
 			{
@@ -604,7 +681,12 @@ void FBGame::GeneratePipes()
 
 		if (pipeCount < SECOND_LEVEL_PIPECOUNT)
 		{
-			scene.bg_pipes = new Pipe2Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+			scene.bg_pipes = new Pipe2Level(
+				gameData.pipes, 
+				al_get_bitmap_width(gameData.pipes), 
+				al_get_bitmap_height(gameData.pipes), 
+				displayWindow
+			);
 			pipeList.push_back(scene.bg_pipes);
 			if (pipeList.size() <= 1)
 			{
@@ -631,7 +713,12 @@ void FBGame::GeneratePipes()
 
 		if (pipeCount < THIRD_LEVEL_PIPECOUNT)
 		{
-			scene.bg_pipes = new Pipe3Level(gameData.pipes, al_get_bitmap_width(gameData.pipes), al_get_bitmap_height(gameData.pipes), displayWindow);
+			scene.bg_pipes = new Pipe3Level(
+				gameData.pipes, 
+				al_get_bitmap_width(gameData.pipes), 
+				al_get_bitmap_height(gameData.pipes), 
+				displayWindow
+			);
 
 			pipeList.push_back(scene.bg_pipes);
 
@@ -643,18 +730,50 @@ void FBGame::GeneratePipes()
 			{
 				scene.bg_pipes->startPipes(pipeList.size(), pipeList[pipeCount - 1]->getX());
 			}
+			gameModes.preBossLevel = false;
 		}
 	}
 	else if (scene.player->getScore() == 75)
 	{
+		static int FOURTH_LEVEL_PIPECOUNT = 50;
 
+		if (!pipeList.empty())
+		{
+			if (!gameModes.preBossLevel)
+			{
+				pipeState = PipeState::LevelFaze;
+				gameModes.preBossLevel = true;
+				return;
+			}
+		}
+		if (pipeCount < FOURTH_LEVEL_PIPECOUNT)
+		{
+			scene.bg_pipes = new Pipe4Level(
+				gameData.pipes,
+				al_get_bitmap_width(gameData.pipes),
+				al_get_bitmap_height(gameData.pipes),
+				displayWindow
+			);
+
+			((Pipe4Level*)scene.bg_pipes)->startPipes(pipeList);
+		}
 	}
 }
 
 void FBGame::ActsPlayLoop()
 {
-	scene.bg = Background(gameData.background, al_get_bitmap_width(gameData.background), displayWindow->getHeight(), displayWindow);
-	scene.groundbk = GroundBk(gameData.ground, al_get_bitmap_width(gameData.ground), al_get_bitmap_height(gameData.ground), displayWindow);
+	scene.bg = Background(
+		gameData.background, 
+		al_get_bitmap_width(gameData.background), 
+		displayWindow->getHeight(), 
+		displayWindow
+	);
+	scene.groundbk = GroundBk(
+		gameData.ground, 
+		al_get_bitmap_width(gameData.ground), 
+		al_get_bitmap_height(gameData.ground), 
+		displayWindow
+	);
 	scene.bg_pipes = new PipeBk();
 	scene.player = new Player(gameData.playerBmp);
 
@@ -804,8 +923,6 @@ void FBGame::ActsPlayLoop()
 			al_set_target_bitmap(al_get_backbuffer(gameData.display));
 			al_draw_bitmap(gameData.buffer, 0, 0, 0);
 
-			//al_destroy_bitmap(buffer);
-
 			al_map_rgb(0, 0, 0);
 			al_flip_display();
 
@@ -826,7 +943,12 @@ void FBGame::ActsPlayLoop()
 
 	if (scene.player->getScore() > scene.player->getHighscore())
 	{
-		al_set_config_value(gameData.config, "GameSettings", "HIGHSCORE", std::to_string(scene.player->getScore()).c_str());
+		al_set_config_value(
+			gameData.config, 
+			"GameSettings", 
+			"HIGHSCORE", 
+			std::to_string(scene.player->getScore()).c_str()
+		);
 		al_save_config_file("config_file.cfg", gameData.config);
 	}
 }
@@ -1041,7 +1163,14 @@ void FBGame::PauseAct()
 	{
 		gameModes.pause = true;
 
-		al_draw_textf(gameData.gameOverFont, al_map_rgb(255, 255, 255), displayWindow->getWidth() / 2, scene.bg.getHeight()/2 - 50, ALLEGRO_ALIGN_CENTRE, "Paused");
+		al_draw_textf(
+			gameData.gameOverFont, 
+			al_map_rgb(255, 255, 255), 
+			displayWindow->getWidth() / 2, 
+			scene.bg.getHeight()/2 - 50, 
+			ALLEGRO_ALIGN_CENTRE, 
+			"Paused"
+		);
 
 		al_flip_display();
 		al_map_rgb(0, 0, 0);

@@ -1,5 +1,7 @@
 #include "fb_pipes.h"
+
 #include <math.h>
+#include <functional>
 
 # define M_PIl          3.141592653589793238462643383279502884L
 
@@ -264,44 +266,12 @@ void Pipe3Level::setYAxisVel()
 
 void Pipe3Level::update()
 {
-	setYAxisVel();
-	
 	x += velX;
-	//y += velY;
-}
-
-void Pipe3Level::drawPipes()
-{
-	static int ALLEGRO_NO_FLIP = 0;
-
-	al_draw_scaled_bitmap(image,
-		0, 0,
-		width, height,
-		x - width / 2, y - getBoundFreeY() - height,
-		width, height,
-		ALLEGRO_NO_FLIP);
-
-	al_draw_scaled_bitmap(image,
-		0, 0,
-		width, height,
-		x - width / 2, y + getBoundFreeY(),
-		width, height,
-		ALLEGRO_FLIP_VERTICAL);
-
-	if (x < 0 - width - 5)
-	{
-		setAlivePipe(false);
-	}
-}
-
-void Pipe3Level::draw()
-{
-	drawPipes();
 }
 
 void Pipe3Level::startPipes(int size, int lastPipePosition)
 {
-	if (size % 6 == 0)
+	if (size % 11 == 0)
 	{
 		x = width + lastPipePosition + pipeDistance;
 	}
@@ -310,7 +280,79 @@ void Pipe3Level::startPipes(int size, int lastPipePosition)
 		x = width + lastPipePosition;
 	}
 	
-	// y = minimum possible location + rand() % maximum interval
-	// y => min - (max interval + min)
-	y = win->getHeight() / 2 + 32*cos((lastPipePosition * win->getHeight() / 5) * M_PIl / 180);
+	y = win->getHeight() / 2 + 18.5 * cos(x * M_PIl * al_get_time());
+}
+
+Pipe4Level::Pipe4Level(ALLEGRO_BITMAP* img, int w, int h, Window* _win)
+	: PipeBk(img, w, h, _win), 
+	dice_roll(0),
+	p1(new Pipe1Level(img, w, h, _win)),
+	p2(new Pipe2Level(img, w, h, _win)),
+	p3(new Pipe3Level(img, w, h, _win)) { }
+
+void Pipe4Level::startPipes(std::vector<PipeBk*>& pipes)
+{
+	int preEditedSize = pipes.size();
+	dice_roll = randCMWC(&cmwc) % 3 + 1;
+
+	switch (dice_roll)
+	{
+	case 1:
+	{
+		for (int i = preEditedSize; i < preEditedSize + 5; ++i)
+		{
+			pipes.push_back(
+				new Pipe1Level(
+					this->getImage(), 
+					this->getWidth(), 
+					this->getHeight(), 
+					this->win
+				));
+			pipes[i]->startPipes( pipes.size(), (pipes.size() == 1) ? win->getWidth() : pipes[i-1]->getX() );
+		}
+		break;
+	}
+	case 2:
+	{
+		for (int i = preEditedSize; i < preEditedSize + 5; ++i)
+		{
+			pipes.push_back(
+				new Pipe2Level(
+					this->getImage(), 
+					this->getWidth(), 
+					this->getHeight(), 
+					this->win
+				));
+			pipes[i]->startPipes(pipes.size(), (pipes.size() == 1) ? win->getWidth() : pipes[i-1]->getX());
+		}
+		break;
+	}
+	case 3:
+	{
+		for (int i = preEditedSize; i < preEditedSize + 5; ++i)
+		{
+			pipes.push_back(
+				new Pipe3Level(
+					this->getImage(), 
+					this->getWidth(), 
+					this->getHeight(), 
+					this->win
+				));
+			if (i == preEditedSize &&
+				preEditedSize % 5 == 0)
+			{
+				pipes[i]->startPipes(11, (pipes.size() == 1) ? win->getWidth() : pipes[i-1]->getX());
+			}
+			else
+			{
+				pipes[i]->startPipes(pipes.size(), (pipes.size() == 1) ? win->getWidth() : pipes[i - 1]->getX());
+			}
+		}
+		break;
+	}
+	}
+}
+
+void Pipe4Level::update()
+{
 }

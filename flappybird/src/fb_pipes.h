@@ -6,8 +6,10 @@
 #include "fb_game_object.h"
 #include "MWC_Rand.h"
 
+#include <random>
 
-enum class LEVEL {L0, L1, L2, L3};
+
+enum class LEVEL {L0, L1, L2, L3, L4};
 
 class PipeBk : public GameObject {
 private:
@@ -98,11 +100,28 @@ private:
 public:
 	Pipe3Level(ALLEGRO_BITMAP*, int, int, Window*);
 	void setYAxisVel();
-	void drawPipes();
 	void startPipes(int, int) override;
 	
 	// Game Object Interface
-	void draw();
+	void update();
+	inline LEVEL getLevel() const { return level; };
+};
+
+class Pipe4Level : public PipeBk
+{
+private:
+	LEVEL level = LEVEL::L4;
+	
+	Pipe1Level* p1;
+	Pipe2Level* p2;
+	Pipe3Level* p3;
+
+	int dice_roll;
+public:
+	Pipe4Level(ALLEGRO_BITMAP*, int, int, Window*);
+	virtual void startPipes(std::vector<PipeBk*>&);
+
+	// Game Object Interface
 	void update();
 	inline LEVEL getLevel() const { return level; };
 };
